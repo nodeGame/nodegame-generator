@@ -1,6 +1,4 @@
-[![Express Logo](https://i.cloudup.com/zfY6lL7eFa-3000x3000.png)](http://expressjs.com/)
-
-[Express'](https://www.npmjs.com/package/express) application generator.
+[nodeGame'](https://www.nodegame.org) games generator.
 
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
