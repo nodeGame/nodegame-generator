@@ -1,0 +1,315 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var mkdirp = require('mkdirp');
+var os = require('os');
+var fs = require('fs');
+var path = require('path');
+var readline = require('readline');
+var sortedObject = require('sorted-object');
+
+var J = require('JSUS').JSUS;
+
+var _exit = process.exit;
+var eol = os.EOL;
+var pkg = require('../package.json');
+
+var version = pkg.version;
+
+var root = path.resolve(__dirname, '..');
+var templatesDir = root + '/templates/';
+
+// Re-assign process.exit because of commander
+// TODO: Switch to a different command framework
+process.exit = exit
+
+// CLI
+
+before(program, 'outputHelp', function () {
+    this.allowUnknownOption();
+});
+
+program
+    .version(version)
+    .usage('[options] [dir]')
+    .option('-e, --ejs', 'add ejs engine support (defaults to jade)')
+    .option('    --git', 'add .gitignore')
+    .option('-f, --force', 'force on non-empty directory')
+    .parse(process.argv);
+
+if (!exit.exited) {
+    main();
+}
+
+/**
+ * Install a before function; AOP.
+ */
+
+function before(obj, method, fn) {
+    var old = obj[method];
+
+    obj[method] = function () {
+        fn.call(this);
+        old.apply(this, arguments);
+    };
+}
+
+/**
+ * Prompt for confirmation on STDOUT/STDIN
+ */
+
+function confirm(msg, callback) {
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    rl.question(msg, function (input) {
+        rl.close();
+        callback(/^y|yes|ok|true$/i.test(input));
+    });
+}
+
+/**
+ * Create application at the given directory `path`.
+ *
+ * @param {String} outDir
+ */
+
+function createApplication(app_name, outDir) {
+    var wait = 5;
+
+    console.log();
+    function complete() {
+        if (--wait) return;
+        var prompt = launchedFromCmd() ? '>' : '$';
+
+        console.log();
+        console.log('   install dependencies:');
+        console.log('     %s cd %s && npm install', prompt, outDir);
+        console.log();
+        console.log('   run the app:');
+
+        if (launchedFromCmd()) {
+            console.log('     %s SET DEBUG=%s:* & npm start', prompt, app_name);
+        } else {
+            console.log('     %s DEBUG=%s:* npm start', prompt, app_name);
+        }
+
+        console.log();
+    }
+    
+    // Fix trailing slash.
+    if (outDir.charAt(outDir.length) !== '/') {
+        outDir = outDir += '/';
+    }
+
+    // Load Templates.
+
+    var auth = loadTemplate('auth/auth.js');
+    var authSettings = loadTemplate('auth/auth.settings.js');
+    var authCodes = loadTemplate('auth/codes.js');
+
+    mkdir(outDir, function(){
+
+
+        // AUTH.
+        mkdir(outDir + 'auth', function(){
+            write(outDir + 'auth/auth.js', auth);
+            write(outDir + 'auth/auth.settings.js', authSettings);
+            write(outDir + 'auth/codes.js', authCodes);
+            complete();
+        });
+
+//        J.copyFromDir(templatesDir + 'auth/', outDir + 'auth');
+//
+//        // CHANNEL.
+//        J.copyFromDir(templatesDir + 'channel/', outDir + 'channel');
+//
+//        // GAME.
+//        J.copyFromDir(templatesDir + 'game/', outDir + 'game');
+//
+//        // PUBLIC.
+//        J.copyFromDir(templatesDir + 'public/', outDir + 'public');
+//
+//        // VIEWS.
+//        J.copyFromDir(templatesDir + 'views/', outDir + 'views');
+//
+//        // VIEWS.
+//        J.copyFromDir(templatesDir + 'waitroom/', outDir + 'waitroom');
+
+
+
+
+
+ 
+
+// Replacing words.
+//        app = app.replace('{views}', program.template);
+
+//         // package.json
+//         var pkg = {
+//             name: app_name
+//             , version: '0.0.0'
+//             , private: true
+//             , scripts: { start: 'node ./bin/www' }
+//             , dependencies: {
+//                 'express': '~4.12.4',
+//                 'body-parser': '~1.12.4',
+//                 'cookie-parser': '~1.3.5',
+//                 'debug': '~2.2.0',
+//                 'morgan': '~1.5.3',
+//                 'serve-favicon': '~2.2.1'
+//             }
+//         }
+// 
+// 
+//         // sort dependencies like npm(1)
+//         pkg.dependencies = sortedObject(pkg.dependencies);
+// 
+//         // write files
+//         write(outDir + '/package.json', JSON.stringify(pkg, null, 2));
+// 
+//         write(outDir + '/app.js', app);
+// 
+//         mkdir(outDir + '/bin', function(){
+//             www = www.replace('{name}', app_name);
+//             write(outDir + '/bin/www', www, 0755);
+//             complete();
+//         });
+// 
+//         if (program.git) {
+//             write(outDir + '/.gitignore', fs.readFileSync(__dirname + '/../templates/js/gitignore', 'utf-8'));
+//         }
+// 
+//         complete();
+    });
+}
+
+function copy_template(from, to) {
+    from = path.join(__dirname, '..', 'templates', from);
+    write(to, fs.readFileSync(from, 'utf-8'));
+}
+
+/**
+ * Check if the given directory `path` is empty.
+ *
+ * @param {String} dir
+ * @param {Function} fn
+ */
+
+function emptyDirectory(dir, fn) {
+    fs.readdir(dir, function(err, files){
+        if (err && 'ENOENT' != err.code) throw err;
+        fn(!files || !files.length);
+    });
+}
+
+/**
+ * Graceful exit for async STDIO
+ */
+
+function exit(code) {
+    // flush output for Node.js Windows pipe bug
+    // https://github.com/joyent/node/issues/6247 is just one bug example
+    // https://github.com/visionmedia/mocha/issues/333 has a good discussion
+    function done() {
+        if (!(draining--)) _exit(code);
+    }
+
+    var draining = 0;
+    var streams = [process.stdout, process.stderr];
+
+    exit.exited = true;
+
+    streams.forEach(function(stream){
+        // submit empty write request and wait for completion
+        draining += 1;
+        stream.write('', done);
+    });
+
+    done();
+}
+
+/**
+ * Determine if launched from cmd.exe
+ */
+
+function launchedFromCmd() {
+    return process.platform === 'win32'
+        && process.env._ === undefined;
+}
+
+/**
+ * Load template file.
+ */
+
+function loadTemplate(name) {
+    return fs.readFileSync(path.join(__dirname, '..', 'templates', name), 'utf-8');
+}
+
+/**
+ * Main program.
+ */
+
+function main() {
+    // Path
+    var destinationPath = program.args.shift() || '.';
+
+    // App name
+    var appName = path.basename(path.resolve(destinationPath));
+
+    // Template engine
+    program.template = 'jade';
+    if (program.ejs) program.template = 'ejs';
+    if (program.hogan) program.template = 'hjs';
+    if (program.hbs) program.template = 'hbs';
+
+    // Generate application
+    emptyDirectory(destinationPath, function (empty) {
+        if (empty || program.force) {
+            createApplication(appName, destinationPath);
+        } 
+        else {
+            confirm(destinationPath + ' is not empty, continue? [y/N] ',
+                    function (ok) {
+
+                        if (ok) {
+                            process.stdin.destroy();
+                            createApplication(appName, destinationPath);
+                        }
+                        else {
+                            console.error('aborting');
+                            exit(1);
+                        }
+                    });
+        }
+    });
+}
+
+/**
+ * echo str > path.
+ *
+ * @param {String} filePath
+ * @param {String} str
+ */
+
+function write(filePath, str, mode) {
+    fs.writeFileSync(filePath, str, { mode: mode || 0666 });
+    console.log('   \x1b[36mcreate\x1b[0m : ' + filePath);
+}
+
+/**
+ * Mkdir -p.
+ *
+ * @param {String} path
+ * @param {Function} fn
+ */
+
+function mkdir(dir, fn) {
+    mkdirp(dir, 0755, function(err){
+        if (err) throw err;
+        console.log('   \033[36mcreate\033[0m : ' + dir);
+        fn && fn();
+    });
+}
