@@ -4,6 +4,10 @@
 [![NPM Downloads][downloads-image]][downloads-url]
 [![Linux Build][travis-image]][travis-url]
 
+## Disclaimer
+
+THIS PACKAGE IS WORK IN PROGRESS AND CURRENTLY BROKEN.
+
 ## Installation
 
 ```sh
