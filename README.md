@@ -3,8 +3,6 @@
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
 [![Linux Build][travis-image]][travis-url]
-[![Windows Build][appveyor-image]][appveyor-url]
-[![Gratipay][gratipay-image]][gratipay-url]
 
 ## Installation
 
@@ -50,6 +48,10 @@ This generator can also be further configured with the following command line fl
 ## License
 
 [MIT](LICENSE)
+
+## Kudos
+
+Based on a fork of [Express Generator](https://github.com/expressjs/generator).
 
 [npm-image]: https://img.shields.io/npm/v/nodegame-generator.svg
 [npm-url]: https://npmjs.org/package/nodegame-generator
