@@ -1,3 +1,14 @@
-node_modules/
-temp/
-npm-debug.log
+*.nddb
+_*
+Session.vim
+*.tar.gz
+~*
+*~
+
+\#*
+.\#*
+
+auth/descil.conf.js
+
+*.DS_Store
+.DS_Store
