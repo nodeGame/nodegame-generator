@@ -1,5 +1,5 @@
 /**
- * # Logic type implementation of the game stages
+ * # Bot type implementation of the game stages
  * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
@@ -15,5 +15,5 @@ module.exports = function(game, settings, treatmentName, gameRoom) {
     // Must implement the stages here.
 
     // ...
-
+    
 };

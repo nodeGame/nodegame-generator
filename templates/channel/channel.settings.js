@@ -1,10 +1,7 @@
 /**
- * # Channels definition file for Ultimatum Game
- * Copyright(c) 2014 Stefano Balietti
+ * # Channels definition file
+ * Copyright(c) 2015 {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
- *
- * Defines two channels, one to test the requirements,
- * and one to actually play an Ultimatum game.
  *
  * http://www.nodegame.org
  * ---
@@ -13,11 +10,14 @@ module.exports = [
 
     // Game channel.
     {
-        name: 'burdenshare',
+        name: '{NAME}',
 
-        admin: 'burdenshare/admin',
+        player: '{NAME}',
 
-        player: 'burdenshare',
+        admin: '{ADMIN}',
+        
+        // Add channel aliases as needed.
+        // alias: []
 
         verbosity: 100,
 
@@ -26,45 +26,23 @@ module.exports = [
 
         // Unauthorized clients will be redirected here.
         // (defaults: "/pages/accessdenied.htm")
-        accessDeniedUrl: '/burdenshare/unauth.htm',
+        accessDeniedUrl: 'unauth.htm',
        
         notify: {
+            
+            onConnect: false,
+
             onStageUpdate: true,
 
             // A client changes stageLevel (e.g. INIT, CALLBACK_EXECUTED);
             onStageLevelUpdate: true,
+
+            onStageLoadedUpdate: false
         },
 
         enableReconnections: true
     }
 
-    ,
-
-    // Requirements channel.
-    {
-        name: 'requirements',
-
-        admin: 'requirements/admin',
-
-        player: 'requirements',
-
-        verbosity: 100,
-
-        getFromAdmins: true,
-
-        waitingRoom: {
-            logicPath: 'requirements.room.js',
-            name: 'requirementsBurden'
-        },
-
-        notify: {
-            onConnect: false,
-            onStageUpdate: false,
-            onStageLevelUpdate: false,
-            onStageLoadedUpdate: false
-        },
-
-        enableReconnections: false
-
-    }
+    // Other channels as needed.
+        
 ];

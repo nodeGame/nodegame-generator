@@ -1,10 +1,13 @@
 /**
- * # Standard Waiting Room for a nodeGame Channel
- * Copyright(c) 2015 Stefano Balietti
+ * # Standard Waiting Room
+ * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
  * Handles incoming connections, matches them, sets the Burden-share game
  * in each client, move them in a separate gaming room, and start the game.
+ *
+ * http://www.nodegame.org
+ * ---
  */
 module.exports = function(settings, node, channel, waitRoom) {
 

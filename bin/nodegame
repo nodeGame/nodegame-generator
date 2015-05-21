@@ -20,7 +20,6 @@ var root = path.resolve(__dirname, '..');
 var templatesDir = root + '/templates/';
 
 // Re-assign process.exit because of commander
-// TODO: Switch to a different command framework
 process.exit = exit
 
 // CLI
@@ -31,8 +30,7 @@ before(program, 'outputHelp', function () {
 
 program
     .version(version)
-    .usage('[options] [dir]')
-    .option('-e, --ejs', 'add ejs engine support (defaults to jade)')
+    .usage('[options] [dir] [author] [author_email]')
     .option('    --git', 'add .gitignore')
     .option('-f, --force', 'force on non-empty directory')
     .parse(process.argv);
@@ -76,113 +74,189 @@ function confirm(msg, callback) {
  * @param {String} outDir
  */
 
-function createApplication(app_name, outDir) {
+function createGameDir(gameName, outDir, author, authorEmail) {
     var wait = 5;
 
+    var d = new Date();
+    var year = d.getFullYear();
+
+    author = author || 'author';
+    author = author || 'email';
+
     console.log();
-    function complete() {
-        if (--wait) return;
-        var prompt = launchedFromCmd() ? '>' : '$';
 
-        console.log();
-        console.log('   install dependencies:');
-        console.log('     %s cd %s && npm install', prompt, outDir);
-        console.log();
-        console.log('   run the app:');
-
-        if (launchedFromCmd()) {
-            console.log('     %s SET DEBUG=%s:* & npm start', prompt, app_name);
-        } else {
-            console.log('     %s DEBUG=%s:* npm start', prompt, app_name);
-        }
-
-        console.log();
+    function substituteHeader(str) {
+        str = str.replace('{AUTHOR}', author);
+        str = str.replace('{AUTHOR_EMAIL}', authorEmail);
+        str = str.replace('{YEAR}', year);
+        return str;
     }
-    
+
+    function complete() {
+        
+        console.log();
+        return;
+
+        // TODO: See if we need more stuff here.
+
+//        if (--wait) return;
+//        var prompt = launchedFromCmd() ? '>' : '$';
+//
+//        console.log();
+//        console.log('   install dependencies:');
+//        console.log('     %s cd %s && npm install', prompt, outDir);
+//        console.log();
+//        console.log('   run the app:');
+//
+//        if (launchedFromCmd()) {
+//            console.log('     %s SET DEBUG=%s:* & npm start', prompt, gameName);
+//        } else {
+//            console.log('     %s DEBUG=%s:* npm start', prompt, gameName);
+//        }
+//
+//        console.log();
+    }
+
     // Fix trailing slash.
     if (outDir.charAt(outDir.length) !== '/') {
         outDir = outDir += '/';
     }
 
-    // Load Templates.
+    // Loading Templates.
 
+    // AUTH.
     var auth = loadTemplate('auth/auth.js');
     var authSettings = loadTemplate('auth/auth.settings.js');
     var authCodes = loadTemplate('auth/codes.js');
 
+    // CHANNEL.
+    var channelSettings = loadTemplate('channel/channel.settings.js');
+
+    // GAME.
+    var gameStages = loadTemplate('game/game.stages.js');
+    var gameSettings = loadTemplate('game/game.settings.js');
+    var gameAhah = loadTemplate('game/game.ahah.js');
+
+    // GAME / client_types.
+    var typePlayer = loadTemplate('game/client_types/player.js');
+    var typeBot = loadTemplate('game/client_types/bot.js');
+    var typeLogic = loadTemplate('game/client_types/logic.js');
+    var typePhantom = loadTemplate('game/client_types/phantom.js');
+
+    // PUBLIC.
+    var indexPage = loadTemplate('public/index.htm');
+
+    // VIEWS.
+
+    // WAITROOM.
+    var waitroomSettings = loadTemplate('waitroom/waitroom.settings.js');
+    var waitroom = loadTemplate('waitroom/waitroom.js');
+
+
     mkdir(outDir, function(){
 
-
         // AUTH.
-        mkdir(outDir + 'auth', function(){
+        mkdir(outDir + 'auth', function() {
+            auth = substituteHeader(auth);
+            authSettings = substituteHeader(authSettings);
+
             write(outDir + 'auth/auth.js', auth);
             write(outDir + 'auth/auth.settings.js', authSettings);
             write(outDir + 'auth/codes.js', authCodes);
             complete();
         });
 
-//        J.copyFromDir(templatesDir + 'auth/', outDir + 'auth');
-//
-//        // CHANNEL.
-//        J.copyFromDir(templatesDir + 'channel/', outDir + 'channel');
-//
-//        // GAME.
-//        J.copyFromDir(templatesDir + 'game/', outDir + 'game');
-//
-//        // PUBLIC.
-//        J.copyFromDir(templatesDir + 'public/', outDir + 'public');
-//
-//        // VIEWS.
-//        J.copyFromDir(templatesDir + 'views/', outDir + 'views');
-//
-//        // VIEWS.
-//        J.copyFromDir(templatesDir + 'waitroom/', outDir + 'waitroom');
+        // CHANNEL.
+        mkdir(outDir + 'channel', function() {
+            channelSettings = substituteHeader(channelSettings);
+            channelSettings = channelSettings.replace('{NAME}', gameName);
+            channelSettings = channelSettings.replace('{ADMIN}', gameName + '/admin');
+            write(outDir + 'channel/channel.settings.js', channelSettings);
+            complete();
+        });
+
+        // GAME.
+        mkdir(outDir + 'game', function() {
+
+            mkdir(outDir + 'game/client_types', function() {
+                typePlayer = substituteHeader(typePlayer);
+                typeBot = substituteHeader(typeBot);
+                typeLogic = substituteHeader(typeLogic);
+                typePhantom = substituteHeader(typePhantom);
+
+                write(outDir + 'game/client_types/player.js', typePlayer);
+                write(outDir + 'game/client_types/bot.js', typeBot);
+                write(outDir + 'game/client_types/logic.js', typeLogic);
+                write(outDir + 'game/client_types/phantom.js', typePhantom);
+                complete();
+            });
+
+            gameStages = substituteHeader(gameStages);
+            gameSettings = substituteHeader(gameSettings);
+
+            write(outDir + 'game/game.stages.js', gameStages);
+            write(outDir + 'game/game.settings.js', gameSettings);
+            write(outDir + 'game/game.ahah.js', gameAhah);
+            complete();
+        });
+
+        // PUBLIC.
+        mkdir(outDir + 'public', function() {
+            write(outDir + 'public/index.htm', indexPage);
+            complete();
+        });
+
+        // VIEWS.
+        mkdir(outDir + 'views', function() {
+            mkdir(outDir + 'views/contexts', function() {
+                // Something.
+                complete();
+            });
+
+            mkdir(outDir + 'views/templates', function() {
+                // Something.
+                complete();
+            });
+
+            complete();
+        });
+        
+        // WAITROOM.
+        mkdir(outDir + 'waitroom', function() {
+            
+            waitroom = substituteHeader(waitroom);
+            waitroomSettings = substituteHeader(waitroomSettings);
+
+            write(outDir + 'waitroom/waitroom.js', waitroom);
+            write(outDir + 'waitroom/waitroom.settings.js', waitroomSettings);
+
+            complete();
+        });
 
 
+        // Package.json
+         var pkg = {
+             name: gameName
+             , version: '0.0.1'
+             , description: 'This is a nodeGame game'
+             , author: author + ' ' + '<' + authorEmail + '>' 
+             , homepage: 'http://nodegame.org'
+             , private: true
+         }
 
 
+        // sort dependencies like npm(1)
+        // pkg.dependencies = sortedObject(pkg.dependencies);
 
- 
+        // write files
+        write(outDir + 'package.json', JSON.stringify(pkg, null, 4));
 
-// Replacing words.
-//        app = app.replace('{views}', program.template);
-
-//         // package.json
-//         var pkg = {
-//             name: app_name
-//             , version: '0.0.0'
-//             , private: true
-//             , scripts: { start: 'node ./bin/www' }
-//             , dependencies: {
-//                 'express': '~4.12.4',
-//                 'body-parser': '~1.12.4',
-//                 'cookie-parser': '~1.3.5',
-//                 'debug': '~2.2.0',
-//                 'morgan': '~1.5.3',
-//                 'serve-favicon': '~2.2.1'
-//             }
-//         }
-// 
-// 
-//         // sort dependencies like npm(1)
-//         pkg.dependencies = sortedObject(pkg.dependencies);
-// 
-//         // write files
-//         write(outDir + '/package.json', JSON.stringify(pkg, null, 2));
-// 
-//         write(outDir + '/app.js', app);
-// 
-//         mkdir(outDir + '/bin', function(){
-//             www = www.replace('{name}', app_name);
-//             write(outDir + '/bin/www', www, 0755);
-//             complete();
-//         });
-// 
-//         if (program.git) {
-//             write(outDir + '/.gitignore', fs.readFileSync(__dirname + '/../templates/js/gitignore', 'utf-8'));
-//         }
-// 
-//         complete();
+        if (program.git) {
+            write(outDir + '.gitignore',
+                  fs.readFileSync(root + '/.gitignore', 'utf-8'));
+        }
+        
+        complete();
     });
 }
 
@@ -245,7 +319,8 @@ function launchedFromCmd() {
  */
 
 function loadTemplate(name) {
-    return fs.readFileSync(path.join(__dirname, '..', 'templates', name), 'utf-8');
+    return fs.readFileSync(
+        path.join(__dirname, '..', 'templates', name), 'utf-8');
 }
 
 /**
@@ -259,24 +334,18 @@ function main() {
     // App name
     var appName = path.basename(path.resolve(destinationPath));
 
-    // Template engine
-    program.template = 'jade';
-    if (program.ejs) program.template = 'ejs';
-    if (program.hogan) program.template = 'hjs';
-    if (program.hbs) program.template = 'hbs';
-
     // Generate application
-    emptyDirectory(destinationPath, function (empty) {
+    emptyDirectory(destinationPath, function(empty) {
         if (empty || program.force) {
-            createApplication(appName, destinationPath);
-        } 
+            createGameDir(appName, destinationPath);
+        }
         else {
             confirm(destinationPath + ' is not empty, continue? [y/N] ',
                     function (ok) {
 
                         if (ok) {
                             process.stdin.destroy();
-                            createApplication(appName, destinationPath);
+                            createGameDir(appName, destinationPath);
                         }
                         else {
                             console.error('aborting');

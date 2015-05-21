@@ -1,8 +1,10 @@
 /**
- * Stages definition for the Burden Game.
+ * # Game stages definition file
+ * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
+ * MIT Licensed
  *
- * They will be extended in game.logic, and game.client.
- *
+ * http://www.nodegame.org
+ * ---
  */
 var ngc = require('nodegame-client');
 
@@ -10,13 +12,14 @@ module.exports = function(settings) {
     var stager = ngc.getStager();
 
     stager.init()
-    .next('instructions')
-    .repeat('burdenSharingControl', settings.REPEAT)
-    .repeat('questionnaire', 23);
+        .next('instructions')
+        .repeat('game', settings.REPEAT)
+        .next('questionnaire');
 
     // Modifty the stager to skip one stage.
+
     // stager.skip('instructions');
-    // stager.skip('burdenSharingControl');
+    // stager.skip('questionnaire');
 
     return stager.getState();
 };

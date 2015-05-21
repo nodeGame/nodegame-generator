@@ -1,5 +1,5 @@
 /**
- * # Logic type implementation of the game stages
+ * # Phantom type implementation of the game stages
  * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
