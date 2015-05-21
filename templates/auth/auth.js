@@ -1,9 +1,9 @@
 /**
- * # Authorization functions for Burden-share Game
- * Copyright(c) 2014 Stefano Balietti
+ * # Authorization functions
+ * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
- * Sets authorizations for accessing the Burden-share channels.
+ * http://www.nodegame.org
  * ---
  */
 module.exports = function(auth) {
@@ -134,14 +134,8 @@ module.exports = function(auth) {
 
 
     // Assigning the auth callbacks to the player server.
-    auth.authorization('burdenshare', 'player', authPlayers);
-    auth.clientIdGenerator('burdenshare', 'player', idGen);
-    auth.clientObjDecorator('burdenshare', 'player', decorateClientObj);
-
-
-    var a = 0;
-    auth.clientIdGenerator('requirements', 'player', function() {
-        return "" + ++a; 
-    });
+    auth.authorization('{NAME}', 'player', authPlayers);
+    auth.clientIdGenerator('{NAME}', 'player', idGen);
+    auth.clientObjDecorator('{NAME}', 'player', decorateClientObj);
 
 };

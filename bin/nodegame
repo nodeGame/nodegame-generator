@@ -80,9 +80,6 @@ function createGameDir(gameName, outDir, author, authorEmail) {
     var d = new Date();
     var year = d.getFullYear();
 
-    author = author || 'author';
-    author = author || 'email';
-
     console.log();
 
     function substituteHeader(str) {
@@ -160,6 +157,8 @@ function createGameDir(gameName, outDir, author, authorEmail) {
             auth = substituteHeader(auth);
             authSettings = substituteHeader(authSettings);
 
+            auth = auth.replace('{NAME}', gameName);
+
             write(outDir + 'auth/auth.js', auth);
             write(outDir + 'auth/auth.settings.js', authSettings);
             write(outDir + 'auth/codes.js', authCodes);
@@ -169,7 +168,7 @@ function createGameDir(gameName, outDir, author, authorEmail) {
         // CHANNEL.
         mkdir(outDir + 'channel', function() {
             channelSettings = substituteHeader(channelSettings);
-            channelSettings = channelSettings.replace('{NAME}', gameName);
+            channelSettings = channelSettings.replace(/{NAME}/g, gameName);
             channelSettings = channelSettings.replace('{ADMIN}', gameName + '/admin');
             write(outDir + 'channel/channel.settings.js', channelSettings);
             complete();
@@ -193,6 +192,7 @@ function createGameDir(gameName, outDir, author, authorEmail) {
 
             gameStages = substituteHeader(gameStages);
             gameSettings = substituteHeader(gameSettings);
+            gameAhah = substituteHeader(gameAhah);
 
             write(outDir + 'game/game.stages.js', gameStages);
             write(outDir + 'game/game.settings.js', gameSettings);
@@ -328,8 +328,14 @@ function loadTemplate(name) {
  */
 
 function main() {
+
     // Path
     var destinationPath = program.args.shift() || '.';
+
+    var author, authorEmail;
+
+    author = program.args[0] || 'author';
+    authorEmail =  program.args[1] || 'email';
 
     // App name
     var appName = path.basename(path.resolve(destinationPath));
@@ -337,7 +343,7 @@ function main() {
     // Generate application
     emptyDirectory(destinationPath, function(empty) {
         if (empty || program.force) {
-            createGameDir(appName, destinationPath);
+            createGameDir(appName, destinationPath, author, authorEmail);
         }
         else {
             confirm(destinationPath + ' is not empty, continue? [y/N] ',
@@ -345,7 +351,8 @@ function main() {
 
                         if (ok) {
                             process.stdin.destroy();
-                            createGameDir(appName, destinationPath);
+                            createGameDir(appName, destinationPath,
+                                          author, authorEmail);
                         }
                         else {
                             console.error('aborting');
