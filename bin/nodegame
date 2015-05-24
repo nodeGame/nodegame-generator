@@ -131,8 +131,8 @@ function createGameDir(gameName, outDir, author, authorEmail) {
 
     // GAME.
     var gameStages = loadTemplate('game/game.stages.js');
+    var gameTreatments = loadTemplate('game/game.treatments.js');
     var gameSettings = loadTemplate('game/game.settings.js');
-    var gameAhah = loadTemplate('game/game.ahah.js');
 
     // GAME / client_types.
     var typePlayer = loadTemplate('game/client_types/player.js');
@@ -191,12 +191,12 @@ function createGameDir(gameName, outDir, author, authorEmail) {
             });
 
             gameStages = substituteHeader(gameStages);
+            gameTreatments = substituteHeader(gameTreatments);
             gameSettings = substituteHeader(gameSettings);
-            gameAhah = substituteHeader(gameAhah);
 
             write(outDir + 'game/game.stages.js', gameStages);
+            write(outDir + 'game/game.treatments.js', gameTreatments);
             write(outDir + 'game/game.settings.js', gameSettings);
-            write(outDir + 'game/game.ahah.js', gameAhah);
             complete();
         });
 
@@ -240,6 +240,7 @@ function createGameDir(gameName, outDir, author, authorEmail) {
              , version: '0.0.1'
              , description: 'This is a nodeGame game'
              , author: author + ' ' + '<' + authorEmail + '>' 
+             , license: "MIT/X11"
              , homepage: 'http://nodegame.org'
              , private: true
          }

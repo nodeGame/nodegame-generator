@@ -1,45 +1,41 @@
 /**
- * # Game settings
+ * # Game settings definition file
  * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
  * http://www.nodegame.org
  * ---
  */
-module.exports = {
+module.exports = function(game) {
 
+    
     // Variables commons to all treatments.
 
-    REPEAT: 4,
+    game.SESSION_ID: 1,
 
-    timer: {
+    game.REPEAT: 4,
+
+    game.timer: {
         instructions: 180000, // 3 minutes
         game: 20000
         questionnaire: 3000
     },
 
-    debug: true,
+    game.env = {
+        auto: false
+    };
 
-    // Treatments.
+    game.debug = false;
 
-    treatments: {
+    game.verbosity = 1;
 
-        treatment1: {
-            name: "treatment1",
-            fullName: "Full name treatment 1",
-            description: "Treatment 1 description",
+    game.window = {
+        promptOnleave: !game.debug
+    };
 
-            // Additional variables as needed.
+    // Other settings, optional
+    game.settings = {
+        publishLevel: 2
+    };
 
-        },
-
-        treatment2: {
-            name: "treatment2",
-            fullName: "Full name treatment 2",
-            description: "Treatment 2 description",
-
-            // Additional variables as needed.
-
-        },
-    }
 };

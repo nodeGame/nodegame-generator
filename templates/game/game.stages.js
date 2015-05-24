@@ -6,15 +6,18 @@
  * http://www.nodegame.org
  * ---
  */
-var ngc = require('nodegame-client');
 
-module.exports = function(settings) {
-    var stager = ngc.getStager();
+module.exports = function(stager, treatment, settings) {
 
-    stager.init()
+     stager.init()
+        .next('precache')
+        .next('selectLanguage')
         .next('instructions')
-        .repeat('game', settings.REPEAT)
-        .next('questionnaire');
+        .next('quiz')
+        .repeat('ultimatum', settings.REPEAT)
+        .next('questionnaire')
+        .next('endgame')
+        .gameover();
 
     // Modifty the stager to skip one stage.
 
