@@ -8,134 +8,94 @@
  */
 module.exports = function(auth) {
 
-    var path = require('path');
+    // The auth object contains a number of callback to specify
+    // how the channel handles authorization / identification
+    // of incoming connections.
 
-    // Reads in descil-mturk configuration.
-    var confPath = path.resolve(__dirname, 'descil.conf.js');
-    var dk = require('descil-mturk')();
-    var settings = require(path.resolve(__dirname, '../server/game.settings.js'));
+    // The Auth API defines 3 callbacks:
+    //
+    //  - `authorization`,
+    //  - `clientIdGenerator`,
+    //  - `clientObjDecorator`
+    //
+    // All of them accept a variable number of parameters.
+    // The first one specifies whether they apply only to
+    // the 'player', the 'admin', (or both) server. If they
+    // apply for both, this parameter can be omitted completely.
+    // The second parameter defines the actual callback, and it
+    // explained in the examples below.
 
-    dk.readConfiguration(confPath);
+    // Assigning the auth callbacks to the player server.
 
-    // Load code database
-    if (settings.AUTH !== 'none') {
-        if (settings.AUTH === 'remote') {
-            dk.getCodes(function() {
-                if (!dk.codes.size()) {
-                    throw new Error('requirements.room: no codes found.');
-                }
-                console.log(dk.codes.db);
-            });
-        }
-        else {
-            dk.readCodes(function() {
-                if (!dk.codes.size()) {
-                    throw new Error('requirements.room: no codes found.');
-                }
-            });
-        }
-    }
+    auth.authorization('player', authPlayers);
 
-    /////////////////////////////// MTurk Version ///////////////////////////
-    // Creating an authorization function for the players.
+
+    auth.clientIdGenerator('player', idGen);
+
+
+    auth.clientObjDecorator('player', decorateClientObj);
+
+
+    // ## Authorization function
+    //
+    // Extra auth function beside default token authorization
+    //
     // This is executed before the client the PCONNECT listener.
-    // Here direct messages to the client can be sent only using
+    // Here, direct messages to the client can be sent only using
     // his socketId property, since no clientId has been created yet.
-
+    //
+    // <channel> is a reference to the channel object, it is the same
+    //           for all connections.
+    //
+    // <info> is an object containing information specific for the
+    //        incoming connections, formatted as follows:
+    //
+    //      {
+    //         headers: Info about connections
+    //         cookies: Cookies passed on connections
+    //         room: The requested room for connection, null otherwise
+    //         clientId: If specified by the signed token, null otherwise
+    //         clientType: The client type: e.g. 'player', 'bot', ...
+    //         validSessionCookie: TRUE if the channel session is matched
+    //      }
+    //
     function authPlayers(channel, info) {
-
-        var code, player, token;
-        playerId = info.cookies.player;
-        token = info.cookies.token;
-
-        console.log('game.room: checking auth.');
-
-        if (settings.AUTH === 'none') {
-            return true;
-        }
-
-        // Weird thing.
-        if ('string' !== typeof playerId) {
-            console.log('no player: ', player)
-            return false;
-        }
-
-        // Weird thing.
-        if ('string' !== typeof token) {
-            console.log('no token: ', token)
-            return false;
-        }
-
-        code = dk.codeExists(token);
-
-        // Code not existing.
-        if (!code) {
-            console.log('not existing token: ', token);
-            return false;
-        }
-
-        if (code.checkedOut) {
-            console.log('token was already checked out: ', token);
-            return false;
-        }
-
-        // Code in use.
-        //  usage is for LOCAL check, IsUsed for MTURK
-        if (code.valid === false) {
-            if (code.disconnected) {
-                return true;
-            }
-            else {
-                console.log('token already in use: ', token);
-                return false;
-            }
-        }
-
-        // Client Authorized
+        // TRUE, means client is authorized.
         return true;
     }
 
-    // Assigns Player Ids based on cookie token.
+    // ## Client ID generation function
+    //
+    // Specifies an ID for incoming connections
+    //
+    // Overwrites any cookie found
+    //
+    // See the authorization function for the explanation of the callback
+    // input parameter <channel> and <info>.
+    //
+    // @see ServerChannel.registry.generateClientId
+    //
     function idGen(channel, info) {
-        var cid = channel.registry.generateClientId();
-        var cookies;
-        var ids;
-
-        if (settings.AUTH === 'none' || settings.AUTH === 'NO') {
-            // If no auth, add the new code to the db.
-            dk.codes.insert({
-                AccessCode: cid,
-                ExitCode: cid + '_exit'
-            });
-            return cid;
-        }
-
-        // // Return the id only if token was validated.
-        // // More checks could be done here to ensure that token is unique in ids.
-        ids = channel.registry.getIds();
-        cookies  = info.cookies;
-        if (cookies.token) {
-
-            if (!ids[cookies.token] || ids[cookies.token].disconnected) {
-                return cookies.token;
-            }
-            else {
-                console.log("already in ids", cookies.token)
-                return false;
-            }
-        }
+        // Returns a valid client ID (string) or undefined.
+        return;
     }
 
-    function decorateClientObj(co, info) {
-        if (info.headers) co.userAgent = info.headers['user-agent'];
+    // ## Client object decoration function
+    //
+    // Adds properties to the client object
+    //
+    // In this example the type of browser is added.
+    //
+    // Some properties of the client object cannot be modified, or an
+    // error will be thrown. They are:
+    //
+    //  - id
+    //  - sid
+    //  - admin
+    //  - clientType
+    //
+    //
+    function decorateClientObj(clientObj, info) {
+        if (info.headers) clientObj.userAgent = info.headers['user-agent'];
     }
-
-    /////////////////////////////// MTurk Version ///////////////////////////
-
-
-    // Assigning the auth callbacks to the player server.
-    auth.authorization('{NAME}', 'player', authPlayers);
-    auth.clientIdGenerator('{NAME}', 'player', idGen);
-    auth.clientObjDecorator('{NAME}', 'player', decorateClientObj);
-
 };

@@ -8,11 +8,14 @@
  */
 module.exports = {
 
-    auth: 'on', // 'off'
+    enabled: true, //  [true, false] Default: TRUE.
 
-    // mycodes.js returns a function that can be executed. default codes.json
-    auth_codes_file: 'mycodes.json',
+    mode: 'auto', // ['remote', 'local', 'auto'] Default: 'auto'
 
-    login_page: 'login.htm',
+    // Must export a function that returns an array of codes synchronously
+    // or asynchronously. Default: 'auth.codes.js'
+    codes: 'auth.codes.js',
+
+    page: 'login.htm'
 
 };
