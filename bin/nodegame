@@ -124,10 +124,12 @@ function createGameDir(gameName, outDir, author, authorEmail) {
     // AUTH.
     var auth = loadTemplate('auth/auth.js');
     var authSettings = loadTemplate('auth/auth.settings.js');
-    var authCodes = loadTemplate('auth/codes.js');
+    var authCodes = loadTemplate('auth/auth.codes.js');
 
     // CHANNEL.
     var channelSettings = loadTemplate('channel/channel.settings.js');
+    var channelSecret = loadTemplate('channel/channel.secret.js');
+    var channelCredentials = loadTemplate('channel/channel.credentials.js');
 
     // GAME.
     var gameStages = loadTemplate('game/game.stages.js');
@@ -142,13 +144,19 @@ function createGameDir(gameName, outDir, author, authorEmail) {
 
     // PUBLIC.
     var indexPage = loadTemplate('public/index.htm');
+    var indexJS = loadTemplate('public/js/index.js');
 
     // VIEWS.
+
 
     // WAITROOM.
     var waitroomSettings = loadTemplate('waitroom/waitroom.settings.js');
     var waitroom = loadTemplate('waitroom/waitroom.js');
 
+    // REQUIREMENTS.
+    var requirementsSettings = loadTemplate('requirements/requirements.settings.js');
+    var requirementsRoom = loadTemplate('requirements/requirements.room.js');
+    var requirements = loadTemplate('requirements/requirements.js');
 
     mkdir(outDir, function(){
 
@@ -161,16 +169,27 @@ function createGameDir(gameName, outDir, author, authorEmail) {
 
             write(outDir + 'auth/auth.js', auth);
             write(outDir + 'auth/auth.settings.js', authSettings);
-            write(outDir + 'auth/codes.js', authCodes);
+            write(outDir + 'auth/auth.codes.js', authCodes);
             complete();
         });
 
         // CHANNEL.
         mkdir(outDir + 'channel', function() {
+
+            // Settings.
             channelSettings = substituteHeader(channelSettings);
             channelSettings = channelSettings.replace(/{NAME}/g, gameName);
             channelSettings = channelSettings.replace('{ADMIN}', gameName + '/admin');
             write(outDir + 'channel/channel.settings.js', channelSettings);
+
+            // Credentials.
+            channelCredentials = substituteHeader(channelCredentials);
+            write(outDir + 'channel/channel.credentials.js', channelCredentials);
+
+            // Secret.
+            channelSecret = substituteHeader(channelSecret);
+            write(outDir + 'channel/channel.secret.js', channelSecret);
+
             complete();
         });
 
@@ -229,6 +248,20 @@ function createGameDir(gameName, outDir, author, authorEmail) {
 
             write(outDir + 'waitroom/waitroom.js', waitroom);
             write(outDir + 'waitroom/waitroom.settings.js', waitroomSettings);
+
+            complete();
+        });
+
+        // REQUIREMENTS.
+        mkdir(outDir + 'requirements', function() {
+            
+            requirements = substituteHeader(requirements);
+            requirementsSettings = substituteHeader(requirementsSettings);
+            requirementsRoom = substituteHeader(requirementsRoom);
+
+            write(outDir + 'requirements/requirements.js', requirements);
+            write(outDir + 'requirements/requirements.settings.js', requirementsSettings);
+            write(outDir + 'requirements/requirements.room.js', requirementsRoom);
 
             complete();
         });
