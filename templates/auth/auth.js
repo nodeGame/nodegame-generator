@@ -82,18 +82,20 @@ module.exports = function(auth) {
 
     // ## Client object decoration function
     //
-    // Adds properties to the client object
+    // Modifies the client object that will be stored in the registry
     //
-    // In this example the type of browser is added.
-    //
-    // Some properties of the client object cannot be modified, or an
-    // error will be thrown. They are:
+    // <clientObj> The client object contains already a number of properties,
+    // which vary depending on the server configuration. Some properties
+    // can never be modified, or an error will be thrown. They are:
     //
     //  - id
     //  - sid
     //  - admin
     //  - clientType
     //
+    // <info> See the authorization function for description
+    //
+    // In this example the type of browser is added.
     //
     function decorateClientObj(clientObj, info) {
         if (info.headers) clientObj.userAgent = info.headers['user-agent'];

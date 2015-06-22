@@ -1,42 +1,26 @@
 <!doctype html>
-<head>
-  <title>Experiment</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Loading  nodeGame libraries and CSS -->
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/javascripts/nodegame-full.js" charset="utf-8"></script>
-  <!-- CSS -->
-  <link href="css/bootstrap.min.css" rel="stylesheet">
-  <link rel='stylesheet' href='/stylesheets/fullheight.css'></link>
-  <link rel='stylesheet' href='/stylesheets/nodegame.css'></link>
-  <link rel='stylesheet' href='./css/main.css'></link>
-</head>
+<title>Experiment</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<!-- nodeGame libraries -->
+<script src='/socket.io/socket.io.js'></script>
+<script src='/javascripts/nodegame-full.js' charset='utf-8'></script>
+<!-- jQuery and BootStrap -->
+<script src="/burdenshare/js/jquery.min.js"></script>
+<script src="js/bootstrap.js"></script>
+<!-- Additional libraries -->
+<script src="./js/RandomOrderExecutor.js"></script>
+<!-- nodeGame style sheets -->
+<link rel='stylesheet' href='/burdenshare/css/bootstrap.min.css' />
+<link rel='stylesheet' href='/stylesheets/noscript.css'></link>
+<link rel='stylesheet' href='/stylesheets/nodegame.min.css' />
+<link rel='stylesheet' href='/stylesheets/fullheight.css'></link>
+<!-- end -->
 
 <body>
-  <noscript>
-    Sorry, you need to enable javascript in order to
-    play this game.
-  </noscript>
-  
-  <div class="container" id="waitingForPlayers" style="display:;">
-    <div class="jumbotron" id = "startPage">
-      <h1 align="center">Welcome to the experiment!</h1>
-      <h3 align="center">
-        <div id="join">
-          <br/>
-          Please be patient and <b>do not leave this page</b> while waiting for the other participants to connect.
-          As soon as a new group is complete the experiment starts automatically.
-          <br><br>
-        </div>
-        <br><br>
-        <div id="nbrPlayers"></div>
-        <br><br>Time Remaining:
-      </h3>
-      <center>
-        <div id="Uhr" class="Uhr" style="font-size:250%;">&nbsp;</div>
-      </center>
-    </div>
-  </div>
-  <script type="text/javascript" src="js/init.js"></script>
+    <noscript>
+        Your browser does not support JavaScript. You cannot take this HIT, if you don't have
+        JavaScript enabled in your browser.
+    </noscript>
+      <div id="widgets_div"></div>
+      <script src="/burdenshare/js/index.js" charset="utf-8"></script>
 </body>

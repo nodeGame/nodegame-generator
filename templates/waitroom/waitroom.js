@@ -1,5 +1,5 @@
 /**
- * # Standard Waiting Room
+ * # Standard Waiting Room for a nodeGame Channel
  * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
@@ -9,36 +9,29 @@
  * http://www.nodegame.org
  * ---
  */
-module.exports = function(settings, node, channel, waitRoom) {
+module.exports = function(settings, waitRoom, runtimeConf) {
 
     // Load the code database.
-    var dk = require('descil-mturk')();
-
     var J = require('JSUS').JSUS;
 
-    // Game Room counter.
-    // TODO: do we need it global ?
-    var counter = 1;
+    var node = waitRoom.node;
+    var channel = waitRoom.channel;
 
     var GROUP_SIZE = settings.GROUP_SIZE;
     var POOL_SIZE = settings.poolSize || GROUP_SIZE;
-
     var MAX_WAIT_TIME = settings.MAX_WAIT_TIME;
 
-    var treatments = Object.keys(channel.gameInfo.treatments);
+    var treatments = Object.keys(channel.gameInfo.settings);
     var tLen = treatments.length;
 
-    // Keep timeouts for all 4 players.
     var timeOuts = {};
 
     var stager = new node.Stager();
 
-    var ngc = require('nodegame-client');
-
     // decideTreatment: check if string, or use it.
     function decideTreatment(t) {
         if (t === "treatment_rotate") {
-            return treatmentName = treatments[(counter-1) % tLen];
+            return treatmentName = treatments[(channel.autoRoomNo-1) % tLen];
         }
         else if ('undefined' === typeof t) {
             return treatmentName = treatments[J.randomInt(-1,tLen-1)];
@@ -48,45 +41,23 @@ module.exports = function(settings, node, channel, waitRoom) {
 
     function makeTimeOut(playerID) {
 
-        // var code = dk.codes.id.get(playerID);
-
-        var timeOutData = {
-            over: "Time elapsed!!!",
-            exit: 'AAA' // code.ExitCode
-        };
-
-        timeOuts[playerID] = setTimeout(function() {
+        timeOuts[playerID] = setTimeout(function() {            
+            var timeOutData, code;
 
             channel.sysLogger.log("Timeout has not been cleared!!!");
 
-            // dk.checkOut(code.AccessCode, code.ExitCode, 0.0, function(
-            // err, response, body) {
-            //
-            //     if (err) {
-            //         // Retry the Checkout
-            //         setTimeout(function() {
-            //             dk.checkOut(code.AccessCode, code.ExitCode, 0.0);
-            //         }, 2000);
-            //     }
-            // });
+            channel.registry.checkOut(playerID);            
 
+            // See if an access code is defined, if so checkout remotely also.
+            code = channel.registry.getClient(playerID);           
+
+            timeOutData = {
+                over: "Time elapsed!!!",
+                exit: code.ExitCode
+            };
             node.say("TIME", playerID, timeOutData);
 
-            // for (i = 0; i < channel.waitingRoom.clients.player.size(); i++) {
-            //     if (channel.waitingRoom.clients.player.db[i].id ==
-            // playerID) {
-            //
-            //         delete channel.waitingRoom.clients.player.db[i];
-            //         channel.waitingRoom.clients.player.db =
-            //             channel.waitingRoom.clients.player.db.filter(
-            //                 function(a) {
-            //                     return typeof a !== 'undefined';
-            //                 }
-            //             );
-            //     }
-            // }
-
-        }, settings.MAX_WAIT_TIME);
+        }, MAX_WAIT_TIME);
 
     }
 
@@ -126,41 +97,54 @@ module.exports = function(settings, node, channel, waitRoom) {
         // Client really disconnected (not moved into another game room).
         if (channel.registry.clients.disconnected.get(p.id)) {
             // Free up the code.
-            // dk.markValid(p.id);
+            channel.registry.markValid(p.id);
         }
-        wRoom = channel.waitingRoom.clients.player;
+        wRoom = waitRoom.clients.player;
         for (i = 0; i < wRoom.size(); i++) {
             node.say("PLAYERSCONNECTED", wRoom.db[i].id, wRoom.size());
         }
     }
 
     function clientConnects(p) {
-        var room, wRoom;
+        var gameRoom, pList;
         var NPLAYERS;
-        var code;
         var i;
         var timeOutData;
         var treatmentName;
         var nPlayers;
 
-        // Check-in.
-        // code = dk.codes.id.get(p.id);
-        // dk.checkIn(code.AccessCode);
-        // dk.markInvalid(p.id);
+        console.log('Client connected to waiting room: ', p.id);
 
-        // channel.sysLogger.log('-----------Player connected ' + p.id);
+        // Mark code as used.
+        channel.registry.markInvalid(p.id);
 
-        wRoom = channel.waitingRoom.clients.player;
+        pList = waitRoom.clients.player;
+        nPlayers = pList.size();
+
+        node.remoteSetup('page', p.id, {
+            clearBody: true,
+            title: { title: 'Welcome!', addToBody: true }
+        });
+
+        node.remoteSetup('widgets', p.id, {
+            destroyAll: true,
+            append: { 'WaitingRoom': {} } 
+        });
 
         // Send the number of minutes to wait.
-        node.say('WAITTIME', p.id, MAX_WAIT_TIME);
+        node.remoteSetup('waitroom', p.id, {
+            poolSize: settings.POOL_SIZE,
+            groupSize: settings.GROUP_SIZE,
+            maxWaitTime: settings.MAX_WAIT_TIME,
+            onTimeout: settings.ON_TIMEOUT
+        });
 
-        nPlayers = wRoom.size();
+        console.log('NPL ', nPlayers);
 
-        for (i = 0; i < nPlayers; i++) {
-            node.say("PLAYERSCONNECTED", wRoom.db[i].id, nPlayers);
-        }
-
+        // Notify all players of new connection.        
+        node.say("PLAYERSCONNECTED", 'ROOM', nPlayers);
+        
+        // Start counting a timeout for max stay in waiting room.
         makeTimeOut(p.id);
 
         // Wait for all players to connect.
@@ -172,33 +156,35 @@ module.exports = function(settings, node, channel, waitRoom) {
                 exit: 0
             };
 
-            node.say("TIME", wRoom.db[i].id, timeOutData);
+            node.say("TIME", pList.db[i].id, timeOutData);
+            
+            // Clear body.
+            node.remoteSetup('page', pList.db[i].id, { clearBody: true });
 
             // Clear timeout for players.
             clearTimeout(timeOuts[i]);
         }
 
-        channel.sysLogger.log('----------- Game Room ' + counter + ': ' +
-                              nPlayers + ' connected.');
-
-        tmpPlayerList = wRoom.shuffle().limit(GROUP_SIZE);
+        // Select a subset of players from pool.
+        tmpPlayerList = pList.shuffle().limit(GROUP_SIZE);
 
         // Decide treatment.
         treatmentName = decideTreatment(settings.CHOSEN_TREATMENT);
-
-        channel.sysLogger.log('Chosen treatment: ' + treatmentName);
-
-        room = channel.createGameRoom({
+        
+        // Create new game room.
+        gameRoom = channel.createGameRoom({
             group: 'burdenshare',
             clients: tmpPlayerList,
             gameName: 'burdenshare',
             treatmentName: treatmentName
         });
 
-        room.setupGame();
-        room.startGame(true, tmpPlayerList.id.getAllKeys());
-
-        counter++;
+        // Setup and start game.
+        gameRoom.setupGame();
+        gameRoom.startGame(true, []);
+        
+        // Ste 19.06
+        // gameRoom.startGame(true, tmpPlayerList.id.getAllKeys());
     }
 
     function monitorReconnects(p) {
@@ -223,21 +209,21 @@ module.exports = function(settings, node, channel, waitRoom) {
         channel.sysLogger.log('Waiting Room Created');
     });
 
+    stager.setDefaultProperty('publishLevel', 0);
+
     stager
         .init()
         .next('waiting');
 
     return {
         nodename: 'standard_wroom',
-        game_metadata: {
+        metadata: {
             name: 'standard_wroom',
             version: '1.0.0'
         },
-        game_settings: {
-            publishLevel: 0
-        },
         plot: stager.getState(),
         debug: settings.debug || false,
-        verbosity: 0
+        verbosity: 0,
+        //clientConnects: clientConnects
     };
 };
