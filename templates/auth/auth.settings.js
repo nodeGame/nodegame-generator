@@ -1,5 +1,5 @@
 /**
- * # Authorization settings.
+ * # Authorization settings
  * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
@@ -16,8 +16,8 @@ module.exports = {
     // Option specifying how to load the codes.
     mode: 'auto', // ['auto'] Default: 'auto'
 
-    // Must export a function that returns an array of codes synchronously
-    // or asynchronously. Default: 'auth.codes.js'
+    // Codes file. Must export a function that returns an array of codes
+    // synchronously or asynchronously. Default file: 'auth.codes.js'
     codes: 'auth.codes.js',
 
     // Future option. Not available now. Path to login page in `public/`

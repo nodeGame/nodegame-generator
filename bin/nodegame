@@ -33,6 +33,7 @@ program
     .usage('[options] [dir] [author] [author_email]')
     .option('    --git', 'add .gitignore')
     .option('-f, --force', 'force on non-empty directory')
+    .option('-v, --verbose', 'verbose output')
     .parse(process.argv);
 
 if (!exit.exited) {
@@ -74,11 +75,18 @@ function confirm(msg, callback) {
  * @param {String} outDir
  */
 
-function createGameDir(gameName, outDir, author, authorEmail) {
-    var wait = 5;
+function createGameDir(gameName, outDir, author, authorEmail, verbose) {
+
+    // Number of synchronous / asynchronous operations.
+    var wait = 8;
 
     var d = new Date();
     var year = d.getFullYear();
+
+    // Fix trailing slash.
+    if (outDir.charAt(outDir.length) !== '/') {
+        outDir = outDir += '/';
+    }
 
     console.log();
 
@@ -89,20 +97,53 @@ function createGameDir(gameName, outDir, author, authorEmail) {
         return str;
     }
 
+
+    /**
+     * echo str > path.
+     *
+     * @param {String} filePath
+     * @param {String} str
+     */
+
+    function write(filePath, str, mode) {
+        fs.writeFileSync(filePath, str, { mode: mode || 0666 });
+        if (verbose) console.log('   \x1b[36mcreate\x1b[0m : ' + filePath);
+    }
+
+    /**
+     * Mkdir -p.
+     *
+     * @param {String} path
+     * @param {Function} fn
+     */
+
+    function mkdir(dir, fn) {
+        mkdirp(dir, 0755, function(err){
+            if (err) throw err;
+            if (verbose) console.log('   \033[36mcreate\033[0m : ' + dir);
+            fn && fn();
+        });
+    }
+
     function complete() {
-        
+        var prompt, tmp;
+        if (--wait) return;
+        prompt = launchedFromCmd() ? '>' : '$';
+
+        console.log('   \x1b[36mgame created\x1b[0m:');
+        console.log('        ' + outDir);
         console.log();
-        return;
 
-        // TODO: See if we need more stuff here.
+        console.log('   \x1b[36medit and rename\x1b[0m:');
+        tmp = '        channel/channel.credentials.js.sample -> ' +
+            'channel/channel.credentials.js';
+        console.log(tmp);
+        tmp = '        channel/channel.secret.js.sample -> ' +
+            'channel/channel.secret.js';
+        console.log(tmp);
+        console.log();
 
-//        if (--wait) return;
-//        var prompt = launchedFromCmd() ? '>' : '$';
-//
-//        console.log();
-//        console.log('   install dependencies:');
-//        console.log('     %s cd %s && npm install', prompt, outDir);
-//        console.log();
+        console.log();
 //        console.log('   run the app:');
 //
 //        if (launchedFromCmd()) {
@@ -114,10 +155,6 @@ function createGameDir(gameName, outDir, author, authorEmail) {
 //        console.log();
     }
 
-    // Fix trailing slash.
-    if (outDir.charAt(outDir.length) !== '/') {
-        outDir = outDir += '/';
-    }
 
     // Loading Templates.
 
@@ -184,17 +221,25 @@ function createGameDir(gameName, outDir, author, authorEmail) {
 
             // Credentials.
             channelCredentials = substituteHeader(channelCredentials);
-            write(outDir + 'channel/channel.credentials.js', channelCredentials);
+            write(outDir + 'channel/channel.credentials.js.sample', channelCredentials);
 
             // Secret.
             channelSecret = substituteHeader(channelSecret);
-            write(outDir + 'channel/channel.secret.js', channelSecret);
+            write(outDir + 'channel/channel.secret.js.sample', channelSecret);
 
             complete();
         });
 
         // GAME.
         mkdir(outDir + 'game', function() {
+
+            gameStages = substituteHeader(gameStages);
+            gameTreatments = substituteHeader(gameTreatments);
+            gameSettings = substituteHeader(gameSettings);
+
+            write(outDir + 'game/game.stages.js', gameStages);
+            write(outDir + 'game/game.treatments.js', gameTreatments);
+            write(outDir + 'game/game.settings.js', gameSettings);
 
             mkdir(outDir + 'game/client_types', function() {
                 typePlayer = substituteHeader(typePlayer);
@@ -208,41 +253,35 @@ function createGameDir(gameName, outDir, author, authorEmail) {
                 write(outDir + 'game/client_types/phantom.js', typePhantom);
                 complete();
             });
-
-            gameStages = substituteHeader(gameStages);
-            gameTreatments = substituteHeader(gameTreatments);
-            gameSettings = substituteHeader(gameSettings);
-
-            write(outDir + 'game/game.stages.js', gameStages);
-            write(outDir + 'game/game.treatments.js', gameTreatments);
-            write(outDir + 'game/game.settings.js', gameSettings);
-            complete();
         });
 
         // PUBLIC.
         mkdir(outDir + 'public', function() {
             write(outDir + 'public/index.htm', indexPage);
-            complete();
+            indexJS = substituteHeader(indexJS);
+            mkdir(outDir + 'public/js', function() {
+                write(outDir + 'public/js/index.js', indexJS);
+
+                mkdir(outDir + 'public/css', function() {
+                    complete();
+                });
+            });
         });
 
         // VIEWS.
         mkdir(outDir + 'views', function() {
             mkdir(outDir + 'views/contexts', function() {
                 // Something.
-                complete();
+                mkdir(outDir + 'views/templates', function() {
+                    // Something.
+                    complete();
+                });
             });
-
-            mkdir(outDir + 'views/templates', function() {
-                // Something.
-                complete();
-            });
-
-            complete();
         });
-        
+
         // WAITROOM.
         mkdir(outDir + 'waitroom', function() {
-            
+
             waitroom = substituteHeader(waitroom);
             waitroomSettings = substituteHeader(waitroomSettings);
 
@@ -254,7 +293,7 @@ function createGameDir(gameName, outDir, author, authorEmail) {
 
         // REQUIREMENTS.
         mkdir(outDir + 'requirements', function() {
-            
+
             requirements = substituteHeader(requirements);
             requirementsSettings = substituteHeader(requirementsSettings);
             requirementsRoom = substituteHeader(requirementsRoom);
@@ -272,10 +311,10 @@ function createGameDir(gameName, outDir, author, authorEmail) {
              name: gameName
              , version: '0.0.1'
              , description: 'This is a nodeGame game'
-             , author: author + ' ' + '<' + authorEmail + '>' 
+             , author: author + ' ' + '<' + authorEmail + '>'
              , license: "MIT/X11"
              , homepage: 'http://nodegame.org'
-             , private: true
+//             , private: true
          }
 
 
@@ -289,7 +328,7 @@ function createGameDir(gameName, outDir, author, authorEmail) {
             write(outDir + '.gitignore',
                   fs.readFileSync(root + '/.gitignore', 'utf-8'));
         }
-        
+
         complete();
     });
 }
@@ -377,7 +416,8 @@ function main() {
     // Generate application
     emptyDirectory(destinationPath, function(empty) {
         if (empty || program.force) {
-            createGameDir(appName, destinationPath, author, authorEmail);
+            createGameDir(appName, destinationPath, author, authorEmail,
+                         program.verbose);
         }
         else {
             confirm(destinationPath + ' is not empty, continue? [y/N] ',
@@ -386,7 +426,7 @@ function main() {
                         if (ok) {
                             process.stdin.destroy();
                             createGameDir(appName, destinationPath,
-                                          author, authorEmail);
+                                          author, authorEmail, program.verbose);
                         }
                         else {
                             console.error('aborting');
@@ -394,32 +434,5 @@ function main() {
                         }
                     });
         }
-    });
-}
-
-/**
- * echo str > path.
- *
- * @param {String} filePath
- * @param {String} str
- */
-
-function write(filePath, str, mode) {
-    fs.writeFileSync(filePath, str, { mode: mode || 0666 });
-    console.log('   \x1b[36mcreate\x1b[0m : ' + filePath);
-}
-
-/**
- * Mkdir -p.
- *
- * @param {String} path
- * @param {Function} fn
- */
-
-function mkdir(dir, fn) {
-    mkdirp(dir, 0755, function(err){
-        if (err) throw err;
-        console.log('   \033[36mcreate\033[0m : ' + dir);
-        fn && fn();
     });
 }

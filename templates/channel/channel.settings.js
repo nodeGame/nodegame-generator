@@ -9,19 +9,22 @@
  * The options for player and admin server are specified by the
  * `playerServer` and `adminServer` properties here.
  *
- * If they share the same options, then just  a string with
+ * If they share the same options, then just a string with
  * the name of the two different connection endpoints must be specified.
  *
- * If different options apply to each server, they must be specified
- * as objects, with the name of the _endpoint_ specified as a key.
+ * If different options apply to each server, `playerServer` and `adminServer`
+ * they must be specified as configuration objects, with the name of
+ * the _endpoint_ specified as a key in the object.
  *
  * http://www.nodegame.org
  * ---
  */
 module.exports = {
 
-    // By default the name of the game in the package.json file
-    // is the name of the channel. Here you can add aliases.
+    // By default the name of the channel is the name of the game,
+    // as found in the package.json file. This means that files will
+    // be served from the address http://myserver/gameName/
+    // Here you can add aliases to enable urls like: http://myserver/alias/
     // alias: []
 
     // Name of the endpoint for socket.io player connections
@@ -62,6 +65,7 @@ module.exports = {
 
     },
 
+    // If TRUE, only one TAB per browser will be allowed.
     enableReconnections: true
 
 };

@@ -8,33 +8,22 @@
  */
 module.exports = function(auth) {
 
-    // The auth object contains a number of callback to specify
+    // The auth object contains a number of callbacks that specify
     // how the channel handles authorization / identification
     // of incoming connections.
 
     // The Auth API defines 3 callbacks:
-    //
-    //  - `authorization`,
-    //  - `clientIdGenerator`,
-    //  - `clientObjDecorator`
-    //
+
+    // auth.authorization('player', authPlayers);
+    // auth.clientIdGenerator('player', idGen);
+    // auth.clientObjDecorator('player', decorateClientObj);
+
     // All of them accept a variable number of parameters.
     // The first one specifies whether they apply only to
     // the 'player', the 'admin', (or both) server. If they
     // apply for both, this parameter can be omitted completely.
     // The second parameter defines the actual callback, and it
-    // explained in the examples below.
-
-    // Assigning the auth callbacks to the player server.
-
-    auth.authorization('player', authPlayers);
-
-
-    auth.clientIdGenerator('player', idGen);
-
-
-    auth.clientObjDecorator('player', decorateClientObj);
-
+    // is explained in the examples below.
 
     // ## Authorization function
     //
