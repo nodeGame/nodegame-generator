@@ -3,6 +3,18 @@
  * Copyright(c) 2015 {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
+ * The channel is divided into two internal servers: player and admin.
+ * Each of those grants different privileges upon connection.
+ *
+ * The options for player and admin server are specified by the
+ * `playerServer` and `adminServer` properties here.
+ *
+ * If they share the same options, then just  a string with
+ * the name of the two different connection endpoints must be specified.
+ *
+ * If different options apply to each server, they must be specified
+ * as objects, with the name of the _endpoint_ specified as a key.
+ *
  * http://www.nodegame.org
  * ---
  */
@@ -11,18 +23,6 @@ module.exports = {
     // By default the name of the game in the package.json file
     // is the name of the channel. Here you can add aliases.
     // alias: []
-
-    // The channel is divided into two internal servers: player and admin.
-    // Each of those grants different privileges upon connection.
-    //
-    // The options for player and admin server are specified by the
-    // `playerServer` and `adminServer` properties here.
-    
-    // If they share the same options, then just  a string with
-    // the name of the two different connection endpoints must be specified.
-
-    // If different options apply to each server, they must be specified
-    // as objects, with the name of the _endpoint_ specified as a key.
 
     // Name of the endpoint for socket.io player connections
     playerServer: '{NAME}',
@@ -42,18 +42,24 @@ module.exports = {
     // Unauthorized clients will be redirected here.
     // (defaults: "/pages/accessdenied.htm")
     accessDeniedUrl: 'unauth.htm',
-    
-    // When players 
+
+    // By default player actions are notified to admins only. Force
+    // notification to other players connected in the same game room:
     notify: {
-        
+
+        // When a player connects / disconnects.
         onConnect: false,
 
-        onStageUpdate: true,
+        // When a player changes a stage / step.
+        onStageUpdate: false,
 
-        // A client changes stageLevel (e.g. INIT, CALLBACK_EXECUTED);
-        onStageLevelUpdate: true,
-
+        // When the 'LOADED' stageLevel is fired (useful to sync players)
         onStageLoadedUpdate: false
+
+        // When any change of stageLevel happens (e.g. INIT, CALLBACK_EXECUTED)
+        // Notice: generates a bit overhead of messages.
+        onStageLevelUpdate: false,
+
     },
 
     enableReconnections: true
