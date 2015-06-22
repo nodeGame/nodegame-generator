@@ -10,8 +10,10 @@
  */
 module.exports = function(requirements, settings) {
 
+    // Requires list of default requirements.
     var ngr = require('nodegame-requirements');
 
+    /// Add requirements functions to the requirements object.
     requirements.add(ngr.nodegameBasic);
     requirements.add(ngr.speedTest, settings.speedTest);
     requirements.add(ngr.browserDetect, settings.excludeBrowsers);

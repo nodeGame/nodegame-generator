@@ -7,16 +7,11 @@
  * ---
  */
 
-module.exports = function(stager, treatment, settings) {
+module.exports = function(stager, settings) {
 
      stager.init()
-        .next('precache')
-        .next('selectLanguage')
         .next('instructions')
-        .next('quiz')
-        .repeat('ultimatum', settings.REPEAT)
-        .next('questionnaire')
-        .next('endgame')
+        .repeat('game', settings.REPEAT)
         .gameover();
 
     // Modifty the stager to skip one stage.

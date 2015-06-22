@@ -98,24 +98,10 @@ function createGameDir(gameName, outDir, author, authorEmail, verbose) {
     }
 
 
-    /**
-     * echo str > path.
-     *
-     * @param {String} filePath
-     * @param {String} str
-     */
-
     function write(filePath, str, mode) {
         fs.writeFileSync(filePath, str, { mode: mode || 0666 });
         if (verbose) console.log('   \x1b[36mcreate\x1b[0m : ' + filePath);
     }
-
-    /**
-     * Mkdir -p.
-     *
-     * @param {String} path
-     * @param {Function} fn
-     */
 
     function mkdir(dir, fn) {
         mkdirp(dir, 0755, function(err){
@@ -129,6 +115,7 @@ function createGameDir(gameName, outDir, author, authorEmail, verbose) {
         var prompt, tmp;
         if (--wait) return;
         prompt = launchedFromCmd() ? '>' : '$';
+        if (verbose) console.log();
 
         console.log('   \x1b[36mgame created\x1b[0m:');
         console.log('        ' + outDir);

@@ -6,36 +6,38 @@
  * http://www.nodegame.org
  * ---
  */
-module.exports = function(game) {
+module.exports = {
 
-    
-    // Variables commons to all treatments.
+    // Variables shared by all treatments.
 
-    game.SESSION_ID: 1,
+    REPEAT: 4,
 
-    game.REPEAT: 4,
-
-    game.timer: {
+    timer: {
         instructions: 180000, // 3 minutes
         game: 20000
         questionnaire: 3000
     },
 
-    game.env = {
-        auto: false
-    };
+    // Treatments definition.
 
-    game.debug = false;
+    // They can contain any number of properties, and also overwrite
+    // those defined above.
 
-    game.verbosity = 1;
+    treatments: {
 
-    game.window = {
-        promptOnleave: !game.debug
-    };
+        sa: {
+            fullName: "Self Assigned 30",
+            description:
+            "Players assign the historical responsibility themselves",
+            gameName: '/burdenHR/'
+        },
 
-    // Other settings, optional
-    game.settings = {
-        publishLevel: 2
-    };
+        ra: {
+            fullName: "Randomly Assigned 30",
+            description:
+            "Players get the historical responsibility assigned randomly",
+            gameName: '/burdenRAHR/'
+        },
 
+    }
 };
