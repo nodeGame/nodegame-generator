@@ -13,13 +13,13 @@ module.exports = function(stager, settings) {
 
      stager.init()
         .next('instructions')
-        .repeat('game', 1)//settings.REPEAT)
+        .repeat('game', settings.REPEAT)
         .next('end')
         .gameover();
 
     // Modifty the stager to skip one stage.
 
-    stager.skip('instructions');
+    // stager.skip('instructions');
 
     return stager.getState();
 };
