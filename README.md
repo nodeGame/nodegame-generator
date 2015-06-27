@@ -4,10 +4,6 @@
 [![NPM Downloads][downloads-image]][downloads-url]
 [![Linux Build][travis-image]][travis-url]
 
-## Disclaimer
-
-THIS PACKAGE IS WORK IN PROGRESS AND CURRENTLY BROKEN.
-
 ## Installation
 
 ```sh
@@ -21,20 +17,9 @@ The quickest way to get started with nodeGame is to utilize the executable `node
 Create the game:
 
 ```bash
-$ nodegame /tmp/mygame && cd /tmp/mygame
+$ nodegame /tmp/mygame myname myemail@com
 ```
 
-Install dependencies:
-
-```bash
-$ npm install
-```
-
-Rock and Roll
-
-```bash
-$ npm start
-```
 
 ## Command Line Options
 
@@ -59,4 +44,3 @@ Based on a fork of [Express Generator](https://github.com/expressjs/generator).
 [travis-url]: https://travis-ci.org/nodegamejs/generator
 [downloads-image]: https://img.shields.io/npm/dm/nodegame-generator.svg
 [downloads-url]: https://npmjs.org/package/nodegame-generator
-
