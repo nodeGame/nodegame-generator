@@ -147,7 +147,6 @@ module.exports = function(treatmentName, settings, stager, setup, gameRoom) {
     stager.extendStep('end', {
         //frame: 'end.htm',
         cb: function() {
-            console.log('AAAAAAAAAA');
             W.loadFrame('end.htm');
         }
     });
