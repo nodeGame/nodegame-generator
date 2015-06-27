@@ -11,101 +11,74 @@ var stepRules = ngc.stepRules;
 var constants = ngc.constants;
 var counter = 0;
 
-module.exports = function(game, settings, treatmentName, gameRoom) {
+module.exports  = function(treatmentName, settings, stager, setup, gameRoom) {
+
+    var node = gameRoom.node;
+    var channel =  gameRoom.channel;
 
     // Must implement the stages here.
 
     // Increment counter.
-    counter = counter ? ++counter : settings.SESSION_ID;
+    counter = counter ? ++counter : settings.SESSION_ID || 1;
 
-    var client = gameRoom.getClientType('player');
+    stager.setOnInit(function() {
 
-    // Reads in descil-mturk configuration.
-    var basedir = channel.resolveGameDir('ultimatum');
-   
-    var stager = game.stager;
+        // Initialize the client.
 
-    // Import other functions used in the game.
-    // Some objects are shared.
-    // Flag to not cache required files.
-    var nocache = true;
-    var cbs = channel.require(__dirname + '/includes/logic.callbacks.js', {
-        node: node,
-        gameRoom: gameRoom,
-        settings: settings,
-        dk: dk,
-        client: client,
-        counter: counter
-        // Reference to channel added by default.
-    }, nocache);
-
-    // Event handler registered in the init function are always valid.
-    stager.setOnInit(cbs.init);
-
-    // Event handler registered in the init function are always valid.
-    stager.setOnGameOver(cbs.gameover);
-
-    // Extending default stages.
-
-    // Set default step rule.
-    stager.setDefaultStepRule(stepRules.OTHERS_SYNC_STEP);
-
-    stager.setDefaultProperty('minPlayers', [ 
-        settings.MIN_PLAYERS,
-        cbs.notEnoughPlayers 
-    ]);
-
-    // All this should be avoided.
-
-    stager.extendStep('precache', {
-        cb: function() {}
     });
-    
-    stager.extendStep('selectLanguage', {
-        cb: function() {}
-    });
-    
+
     stager.extendStep('instructions', {
-        cb: function() {}
-    });
-    
-    stager.extendStep('quiz', {
-        cb: function() {}
-    });
-
-    stager.extendStep('questionnaire', {
-        cb: function() {},
-        minPlayers: undefined
-    });
-
-    stager.extendStep('ultimatum', {
         cb: function() {
-            this.node.log('Ultimatum');
-            cbs.doMatch();
+            console.log('Instructions.');
         }
     });
 
-    stager.extendStep('endgame', {
-        cb: cbs.endgame,
-        minPlayers: undefined,
-        steprule: stepRules.SOLO
+    stager.extendStep('game', {
+        cb: function() {
+            console.log('Game round: ' + node.player.stage.round);
+            doMatch();
+        }
+    });
+
+    stager.extendStep('end', {
+        cb: function() {
+            node.game.memory.save(channel.getGameDir() + 'data/data_' +
+                                  node.nodename + '.json');
+        }
+    });
+
+    stager.setOnGameOver(function() {
+
+        // Something to do.
+
+    });
+
+    // Default options.
+
+    // Wait for other players to be DONE and then step.
+    stager.setDefaultStepRule(stepRules.OTHERS_SYNC_STEP);
+
+    // Send the command to step to other players as well.
+    stager.setDefaultProperties({
+        publishLevel: 0,
+        syncStepping: true
     });
 
     // Here we group together the definition of the game logic.
     return {
         nodename: 'lgc' + counter,
-        game_settings: {
-            // Will not publish any update of stage / stageLevel, etc.
-            publishLevel: 0,
-            // Will send a start / step command to ALL the clients when
-            // the logic will start / step through the game.
-            // This option requires that the game plots of the clients
-            // and logic are symmetric or anyway compatible.
-            syncStepping: true
-        },
         // Extracts, and compacts the game plot that we defined above.
         plot: stager.getState(),
-        
+
     };
 
+    // Helper functions.
+
+    function doMatch() {
+        var players;
+        len = node.game.pl.size();
+        players = node.game.pl.shuffle().id.getAllKeys();
+        node.say('ROLE_DICTATOR', players[0], players[1]);
+        node.say('ROLE_OBSERVER', players[1]);
+    }
 };

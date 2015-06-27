@@ -157,7 +157,7 @@ function createGameDir(gameName, outDir, author, authorEmail, verbose) {
 
     // GAME.
     var gameStages = loadTemplate('game/game.stages.js');
-    var gameTreatments = loadTemplate('game/game.treatments.js');
+    var gameSetup = loadTemplate('game/game.setup.js');
     var gameSettings = loadTemplate('game/game.settings.js');
 
     // GAME / client_types.
@@ -168,6 +168,9 @@ function createGameDir(gameName, outDir, author, authorEmail, verbose) {
 
     // PUBLIC.
     var indexPage = loadTemplate('public/index.htm');
+    var gamePage = loadTemplate('public/game.htm');
+    var instrPage = loadTemplate('public/instructions.htm');
+    var endPage = loadTemplate('public/end.htm');
     var indexJS = loadTemplate('public/js/index.js');
 
     // VIEWS.
@@ -183,6 +186,8 @@ function createGameDir(gameName, outDir, author, authorEmail, verbose) {
     var requirements = loadTemplate('requirements/requirements.js');
 
     mkdir(outDir, function(){
+
+        mkdir(outDir + 'data');
 
         // AUTH.
         mkdir(outDir + 'auth', function() {
@@ -221,11 +226,11 @@ function createGameDir(gameName, outDir, author, authorEmail, verbose) {
         mkdir(outDir + 'game', function() {
 
             gameStages = substituteHeader(gameStages);
-            gameTreatments = substituteHeader(gameTreatments);
+            gameSetup = substituteHeader(gameSetup);
             gameSettings = substituteHeader(gameSettings);
 
             write(outDir + 'game/game.stages.js', gameStages);
-            write(outDir + 'game/game.treatments.js', gameTreatments);
+            write(outDir + 'game/game.setup.js', gameSetup);
             write(outDir + 'game/game.settings.js', gameSettings);
 
             mkdir(outDir + 'game/client_types', function() {
@@ -246,6 +251,16 @@ function createGameDir(gameName, outDir, author, authorEmail, verbose) {
         mkdir(outDir + 'public', function() {
             write(outDir + 'public/index.htm', indexPage);
             indexJS = substituteHeader(indexJS);
+            // TODO: one command to replace all instances.
+            indexJS = indexJS.replace('{NAME}', gameName);
+            indexJS = indexJS.replace('{NAME}', gameName);
+
+            instrPage = instrPage.replace('{NAME}', gameName);
+            write(outDir + 'public/instructions.htm', instrPage);
+
+            write(outDir + 'public/game.htm', gamePage);
+            write(outDir + 'public/end.htm', endPage);
+
             mkdir(outDir + 'public/js', function() {
                 write(outDir + 'public/js/index.js', indexJS);
 

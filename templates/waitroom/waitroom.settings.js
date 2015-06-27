@@ -12,7 +12,7 @@ module.exports = {
     POOL_SIZE: 4,
 
     // The size of each group.
-    GROUP_SIZE: 4,
+    GROUP_SIZE: 2,
 
     // Treatment assigned to groups.
     // If left undefined, a random treatment will be selected.

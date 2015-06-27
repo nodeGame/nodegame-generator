@@ -3,7 +3,7 @@
  * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
- * Handles incoming connections, matches them, sets the Burden-share game
+ * Handles incoming connections, matches them, setups the game
  * in each client, move them in a separate gaming room, and start the game.
  *
  * http://www.nodegame.org
@@ -41,15 +41,15 @@ module.exports = function(settings, waitRoom, runtimeConf) {
 
     function makeTimeOut(playerID) {
 
-        timeOuts[playerID] = setTimeout(function() {            
+        timeOuts[playerID] = setTimeout(function() {
             var timeOutData, code;
 
             channel.sysLogger.log("Timeout has not been cleared!!!");
 
-            channel.registry.checkOut(playerID);            
+            channel.registry.checkOut(playerID);
 
             // See if an access code is defined, if so checkout remotely also.
-            code = channel.registry.getClient(playerID);           
+            code = channel.registry.getClient(playerID);
 
             timeOutData = {
                 over: "Time elapsed!!!",
@@ -128,7 +128,7 @@ module.exports = function(settings, waitRoom, runtimeConf) {
 
         node.remoteSetup('widgets', p.id, {
             destroyAll: true,
-            append: { 'WaitingRoom': {} } 
+            append: { 'WaitingRoom': {} }
         });
 
         // Send the number of minutes to wait.
@@ -141,9 +141,9 @@ module.exports = function(settings, waitRoom, runtimeConf) {
 
         console.log('NPL ', nPlayers);
 
-        // Notify all players of new connection.        
+        // Notify all players of new connection.
         node.say("PLAYERSCONNECTED", 'ROOM', nPlayers);
-        
+
         // Start counting a timeout for max stay in waiting room.
         makeTimeOut(p.id);
 
@@ -157,7 +157,7 @@ module.exports = function(settings, waitRoom, runtimeConf) {
             };
 
             node.say("TIME", pList.db[i].id, timeOutData);
-            
+
             // Clear body.
             node.remoteSetup('page', pList.db[i].id, { clearBody: true });
 
@@ -170,21 +170,16 @@ module.exports = function(settings, waitRoom, runtimeConf) {
 
         // Decide treatment.
         treatmentName = decideTreatment(settings.CHOSEN_TREATMENT);
-        
+
         // Create new game room.
         gameRoom = channel.createGameRoom({
-            group: 'burdenshare',
             clients: tmpPlayerList,
-            gameName: 'burdenshare',
             treatmentName: treatmentName
         });
 
         // Setup and start game.
         gameRoom.setupGame();
         gameRoom.startGame(true, []);
-        
-        // Ste 19.06
-        // gameRoom.startGame(true, tmpPlayerList.id.getAllKeys());
     }
 
     function monitorReconnects(p) {

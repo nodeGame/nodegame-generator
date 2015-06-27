@@ -26,13 +26,13 @@ window.onload = function() {
             reconnect : false
         }
     });
-    
+
     // Connecting.
     if (location.search) {
         // Pass query arguments on.
-        node.connect('{NAME}', { query: location.search.substr(1) });
+        node.connect('/{NAME}', { query: location.search.substr(1) });
     }
     else {
-        node.connect('{NAME}');
+        node.connect('/{NAME}');
     }
 };

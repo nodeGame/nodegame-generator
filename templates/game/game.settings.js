@@ -3,6 +3,14 @@
  * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
+ * The variables in this file will be sent to each client and saved under:
+ *
+ *   `node.game.settings`
+ *
+ * The name of the chosen treatment will be added as:
+ *
+ *    `node.game.settings.treatmentName`
+ *
  * http://www.nodegame.org
  * ---
  */
@@ -10,33 +18,32 @@ module.exports = {
 
     // Variables shared by all treatments.
 
-    REPEAT: 4,
+    // Session counter.
+    SESSION_ID: 1,
 
-    timer: {
-        instructions: 180000, // 3 minutes
-        game: 20000
-        questionnaire: 3000
-    },
+    // Numnber of game rounds repetitions.
+    REPEAT: 4,
 
     // Treatments definition.
 
     // They can contain any number of properties, and also overwrite
     // those defined above.
 
+    // If the `treatments` object is missing a treatment named _standard_
+    // will be created automatically, and will contain all variables.
+
     treatments: {
 
-        sa: {
-            fullName: "Self Assigned 30",
-            description:
-            "Players assign the historical responsibility themselves",
-            gameName: '/burdenHR/'
+        standard: {
+            fullName: "Standard Treatment",
+            description: "Longer time",
+            timer: 30000
         },
 
-        ra: {
-            fullName: "Randomly Assigned 30",
-            description:
-            "Players get the historical responsibility assigned randomly",
-            gameName: '/burdenRAHR/'
+        pressure: {
+            fullName: "Time Pressure Treatment",
+            description: "Short times to take decisions",
+            timer: 10000
         },
 
     }

@@ -3,100 +3,164 @@
  * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
+ * Each client type must extend / implement the stages defined in `game.stages`.
+ * Upon connection each client is assigned a client type and it is automatically
+ * setup with it.
+ *
  * http://www.nodegame.org
  * ---
  */
 var ngc = require('nodegame-client');
 var stepRules = ngc.stepRules;
 var constants = ngc.constants;
+var publishLevels = constants.publishLevels;
 
-module.exports = function(game, treatmentName, gameRoom) {
+module.exports = function(treatmentName, settings, stager, setup, gameRoom) {
 
-    var stager, MIN_PLAYERS;
-    var callbacks;
-    
-    callbacks = require(__dirname + '/includes/callbacks.js');
+    var game;
 
-    stager = game.stager;
+    stager.setOnInit(function() {
 
-    // Init callback.
-    stager.setOnInit(callbacks.init);
+        // Initialize the client.
 
-    stager.setDefaultStepRule(stepRules.WAIT);
+        var header, frame;
 
-    stager.setDefaultProperty('done', callbacks.clearFrame);
-    
-    MIN_PLAYERS = [ settings.MIN_PLAYERS, callbacks.notEnoughPlayers ];
+        // Bid is valid if it is a number between 0 and 100.
+        this.isValidBid = function(n) {
+            if (typeof n !== 'string') return false;
+            if (!/^\d+$/.test(n)) return false;
+            n = parseInt(n, 10);
+            if (n < 0 || n > 100) return false;
+            return n;
+        };
+
+        this.randomOffer = function(offer, submitOffer) {
+            var n;
+            n = JSUS.randomInt(-1,100);
+            offer.value = n;
+            submitOffer.click();
+        };
+
+        // Setup page: header + frame.
+        header = W.generateHeader();
+        frame = W.generateFrame();
+
+        // Add widgets.
+        this.visualRound = node.widgets.append('VisualRound', header);
+        this.timer = node.widgets.append('VisualTimer', header);
+    });
 
     stager.extendStep('instructions', {
-        cb: callbacks.instructions,
-        minPlayers: MIN_PLAYERS,
-        // syncOnLoaded: true,
-        timer: 90000
-    });
+        cb: function() {
 
+            W.loadFrame('instructions.htm', function() {
 
-    stager.extendStep('ultimatum', {
-        cb: callbacks.ultimatum,
-        minPlayers: MIN_PLAYERS,
-        // `syncOnLoaded` forces the clients to wait for all the others to be
-        // fully loaded before releasing the control of the screen to the
-        // players.  This options introduces a little overhead in
-        // communications and delay in the execution of a stage. It is probably
-        // not necessary in local networks, and it is FALSE by default.
-        // syncOnLoaded: true
-    });
+                var button = W.getElementById('read');
+                button.onclick = function() {
+                    node.done();
+                };
 
-    stager.extendStep('endgame', {
-        cb: callbacks.endgame
-    });
-
-    stager.extendStep('questionnaire', {
-        cb: callbacks.postgame,
-        timer: 90000,
-        // `done` is a callback function that is executed as soon as a
-        // _DONE_ event is emitted. It can perform clean-up operations (such
-        // as disabling all the forms) and only if it returns true, the
-        // client will enter the _DONE_ stage level, and the step rule
-        // will be evaluated.
-        done: function() {
-            var q1, q2, q2checked, i, isTimeup;
-            q1 = W.getElementById('comment').value;
-            q2 = W.getElementById('disconnect_form');
-            q2checked = -1;
-
-            for (i = 0; i < q2.length; i++) {
-                if (q2[i].checked) {
-                    q2checked = i;
-                    break;
-                }
-            }
-
-            isTimeUp = node.game.timer.gameTimer.timeLeft <= 0;
-
-            // If there is still some time left, let's ask the player
-            // to complete at least the second question.
-            if (q2checked === -1 && !isTimeUp) {
-                alert('Please answer Question 2');
-                return false;
-            }
-
-            node.set('questionnaire', {
-                q1: q1 || '',
-                q2: q2checked
             });
+        },
+        timer: 60000
+    });
 
-            node.emit('INPUT_DISABLE');
-            node.set('timestep', {
-                time: node.timer.getTimeSince('step'),
-                timeup: isTimeUp
+    stager.extendStep('game', {
+        cb: function() {
+            W.loadFrame('game.htm', function() {
+
+                node.on.data('ROLE_DICTATOR', function(msg) {
+                    var button, offer, div;
+
+                    // Make the dictator display visible.
+                    div = W.getElementById('dictator').style.display = '';
+                    button = W.getElementById('submitOffer');
+                    offer =  W.getElementById('offer');
+
+
+                    // Setup the timer.
+                    node.game.timer.init({
+                        milliseconds: node.game.settings.timer,
+                        timeup: function() {
+                            node.game.randomOffer(offer, button);
+                        }
+                    });
+                    node.game.timer.updateDisplay();
+                    node.game.timer.startTiming();
+
+                    // Listen on click event.
+                    button.onclick = function() {
+                        var to, decision;
+                        // Validate offer.
+                        decision = node.game.isValidBid(offer.value);
+                        if ('number' !== typeof decision) {
+                            W.writeln('Please enter a number between ' +
+                                      '0 and 100.');
+                            return;
+                        }
+                        button.disabled = true;
+
+                        // The recipient of the offer.
+                        to = msg.data;
+
+                        // Send the decision to the other player.
+                        node.say('decision', to, decision);
+                        // Store the decision in the server.
+                        node.set('offer', decision);
+
+                        // Mark the end of the round.
+                        node.done();
+                    };
+                });
+
+
+                node.on.data('ROLE_OBSERVER', function(msg) {
+                    var button, span, offer, div;
+
+
+                    node.game.timer.clear();
+                    node.game.timer.startWaiting({
+                        milliseconds: node.game.settings.timer,
+                        timeup: false
+                    });
+
+                    // Make the observer display visible.
+                    div = W.getElementById('observer').style.display = '';
+                    span = W.getElementById('dots');
+                    W.addLoadingDots(span);
+                    node.on.data('decision', function(msg) {
+                        var span;
+                        span = W.getElementById('decision');
+                        span.innerHTML = 'The dictator offered: ' + msg.data +
+                            ' ECU.';
+                        // Setting the step done with delay.
+                        setTimeout(function() {
+                            node.done();
+                        }, 5000);
+                    });
+                });
+
             });
-            return true;
         }
     });
 
-    // We serialize the game sequence before sending it.
-    game.plot = stager.getState();
+    stager.extendStep('end', {
+        //frame: 'end.htm',
+        cb: function() {
+            console.log('AAAAAAAAAA');
+            W.loadFrame('end.htm');
+        }
+    });
 
+    // Players are waiting for the server command to step.
+    stager.setDefaultStepRule(stepRules.WAIT);
+
+    // Reduce overhead of exchanged messages.
+    stager.setDefaultProperties({
+        publishLevel: publishLevels.REGULAR,
+    });
+
+    game = setup;
+    game.plot = stager.getState();
     return game;
 };

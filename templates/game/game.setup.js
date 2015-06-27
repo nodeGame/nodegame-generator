@@ -1,7 +1,6 @@
 /**
  * # Game setup
  * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
- * Copyright(c) 2014 Stefano Balietti
  * MIT Licensed
  *
  * The file includes settings for the nodeGame client instance

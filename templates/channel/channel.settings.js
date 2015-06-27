@@ -57,7 +57,7 @@ module.exports = {
         onStageUpdate: false,
 
         // When the 'LOADED' stageLevel is fired (useful to sync players)
-        onStageLoadedUpdate: false
+        onStageLoadedUpdate: false,
 
         // When any change of stageLevel happens (e.g. INIT, CALLBACK_EXECUTED)
         // Notice: generates a bit overhead of messages.
