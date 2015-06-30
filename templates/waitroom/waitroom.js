@@ -31,10 +31,10 @@ module.exports = function(settings, waitRoom, runtimeConf) {
     // decideTreatment: check if string, or use it.
     function decideTreatment(t) {
         if (t === "treatment_rotate") {
-            return treatmentName = treatments[(channel.autoRoomNo-1) % tLen];
+            return treatments[(channel.autoRoomNo) % tLen];
         }
         else if ('undefined' === typeof t) {
-            return treatmentName = treatments[J.randomInt(-1,tLen-1)];
+            return treatments[J.randomInt(-1,tLen-1)];
         }
         return t;
     }
