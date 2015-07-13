@@ -145,6 +145,8 @@ module.exports = function(treatmentName, settings, stager, setup, gameRoom) {
         // frame: 'end.htm',
         cb: function() {
             W.loadFrame('end.htm');
+            node.game.timer.startTiming();
+            node.game.timer.setToZero();
         }
     });
 
