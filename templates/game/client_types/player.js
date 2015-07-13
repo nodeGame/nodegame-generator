@@ -105,18 +105,15 @@ module.exports = function(treatmentName, settings, stager, setup, gameRoom) {
 
                         // Send the decision to the other player.
                         node.say('decision', to, decision);
-                        // Store the decision in the server.
-                        node.set('offer', decision);
 
-                        // Mark the end of the round.
-                        node.done();
+                        // Mark the end of the round, and
+                        // store the decision in the server.
+                        node.done({ offer: decision });
                     };
                 });
 
-
                 node.on.data('ROLE_OBSERVER', function(msg) {
                     var button, span, offer, div;
-
 
                     node.game.timer.clear();
                     node.game.timer.startWaiting({
@@ -145,18 +142,10 @@ module.exports = function(treatmentName, settings, stager, setup, gameRoom) {
     });
 
     stager.extendStep('end', {
-        //frame: 'end.htm',
+        // frame: 'end.htm',
         cb: function() {
             W.loadFrame('end.htm');
         }
-    });
-
-    // Players are waiting for the server command to step.
-    stager.setDefaultStepRule(stepRules.WAIT);
-
-    // Reduce overhead of exchanged messages.
-    stager.setDefaultProperties({
-        publishLevel: publishLevels.REGULAR,
     });
 
     game = setup;
