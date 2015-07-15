@@ -6,6 +6,9 @@
  * http://www.nodegame.org
  * ---
  */
+
+"use strict";
+
 var ngc = require('nodegame-client');
 var stepRules = ngc.stepRules;
 var constants = ngc.constants;
