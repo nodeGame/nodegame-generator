@@ -90,8 +90,8 @@ module.exports = function(settings, room, runtimeConf) {
     game = {};
 
     game.metadata = {
-        name: 'Requirements check room for Burde-Sharing-Control-AMT',
-        description: 'Validates players entry codes with an internal database.',
+        name: 'Requirements check room',
+        description: 'Validates players requirements.',
         version: '0.1'
     };
 
