@@ -82,9 +82,7 @@ module.exports = function(settings, room, runtimeConf) {
 
     stager.setOnInit(init);
 
-    stager
-        .init()
-        .next('requirements');
+    stager.next('requirements');
 
     // Return the game.
     game = {};
