@@ -67,7 +67,7 @@ module.exports = function(treatmentName, settings, stager, setup, gameRoom) {
     // Helper functions.
 
     function doMatch() {
-        var players;
+        var players, len;
         len = node.game.pl.size();
         players = node.game.pl.shuffle().id.getAllKeys();
         node.say('ROLE_DICTATOR', players[0], players[1]);
