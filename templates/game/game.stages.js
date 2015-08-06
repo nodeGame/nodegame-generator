@@ -11,7 +11,7 @@
 
 module.exports = function(stager, settings) {
 
-     stager.init()
+     stager
         .next('instructions')
         .repeat('game', settings.REPEAT)
         .next('end')
