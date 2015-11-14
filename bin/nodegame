@@ -18,9 +18,17 @@ var version = pkg.version;
 
 var root = path.resolve(__dirname, '..');
 var templatesDir = root + '/templates/';
+var confFile = root + '/conf/generator.conf.json';
 
 // Re-assign process.exit because of commander
 process.exit = exit
+
+// Mock configuration. Should be overwritten.
+var conf = {
+    author: 'author',
+    email: 'email',
+    gamesFolder: undefined
+};
 
 // CLI
 
@@ -29,16 +37,36 @@ before(program, 'outputHelp', function () {
 });
 
 program
-    .version(version)
-    .usage('[options] [dir] [author] [author_email]')
+    .command('create-game [options] [dir] [author] [author_email]')
+    .description('Creates a new game in the games directory')
     .option('    --git', 'add .gitignore')
     .option('-f, --force', 'force on non-empty directory')
     .option('-v, --verbose', 'verbose output')
-    .parse(process.argv);
+    .action(function(game, author, email) {
+        //console.log(arguments);
+        // console.log(options, dir, author, email);
 
-if (!exit.exited) {
-    main();
-}
+        loadConfFile(function() {
+            createGame({
+                game: game,
+                author: author,
+                email: email
+            });
+        });
+
+    });
+
+program
+    .version(version)
+    .command('conf')
+    .description('Start nodegame configuration utility')
+    .action(function(env, options){
+        createConfFile(options);
+    });
+
+// if (!exit.exited) {
+//     main();
+// }
 
 /**
  * Install a before function; AOP.
@@ -389,6 +417,11 @@ function launchedFromCmd() {
         && process.env._ === undefined;
 }
 
+function isAbsolute(filePath) {
+    if (launchedFromCmd(filePath)) return filePath.substring(1,3) === ':\\';
+    else return filePath.charAt(0) === '/';
+}
+
 /**
  * Load template file.
  */
@@ -399,27 +432,44 @@ function loadTemplate(name) {
 }
 
 /**
- * Main program.
+ * Create game.
  */
+function createGame(options) {
+    debugger
+    var author, authorEmail, destinationPath;
+    var appName;
 
-function main() {
+    if (!options.game) {
+        console.log('Error: game name missing');
+        return;
+    }
 
-    // Path
-    var destinationPath = program.args.shift() || '.';
+    if (isAbsolute(options.game)) {
+        destinationPath = options.game;
+    }
+    else {
+        // Is there a default game folder?
+        if (!conf.gamesFolder) {
+            console.log('Error: no default game folder found. Please ' +
+                        'provide an absolute path for the game, or ' +
+                        'set the default game folder');
+            return;
+        }
+        destinationPath = conf.gamesFolder + options.game;
+    }
 
-    var author, authorEmail;
+    // App name.
+    appName = path.basename(path.resolve(destinationPath));
 
-    author = program.args[0] || 'author';
-    authorEmail =  program.args[1] || 'email';
+    // Author and email as from input or as default ones.
+    author = options.author || conf.author;
+    authorEmail = options.email || conf.email;
 
-    // App name
-    var appName = path.basename(path.resolve(destinationPath));
-
-    // Generate application
+    // Generate game. Check if it is empty.
     emptyDirectory(destinationPath, function(empty) {
         if (empty || program.force) {
             createGameDir(appName, destinationPath, author, authorEmail,
-                         program.verbose);
+                          program.verbose);
         }
         else {
             confirm(destinationPath + ' is not empty, continue? [y/N] ',
@@ -438,3 +488,78 @@ function main() {
         }
     });
 }
+
+
+/**
+ * Create conf file
+ */
+function createConfFile(cb) {
+
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    rl.question('Default nodeGame games folder path: ', function(answer) {
+
+        conf.gamesFolder = answer;
+
+        rl.question('Default author name: ', function(answer) {
+
+            conf.author = answer;
+
+            rl.question('Default author email: ', function(answer) {
+
+                conf.email = answer;
+
+                console.log('');
+                console.log('');
+                console.log("    Games folder path: ", conf.gamesFolder);
+                console.log("          Author name: ", conf.author);
+                console.log("         Author email: ", conf.email);
+                console.log('');
+                console.log('');
+                console.log('To change run nodegame conf');
+
+                rl.close();
+
+                writeConfFile(conf, cb);
+            });
+        });
+    });
+}
+
+
+function writeConfFile(conf, cb) {
+    var str;
+    str = JSON.stringify(conf, null, 4);
+    fs.writeFile(confFile, str, function(err) {
+        if (err) {
+            console.log('An error occurred. Could not write ' + confFile);
+            console.log(err);
+            console.log('');
+            console.log('Trying to continue...');
+            console.log('');
+        }
+
+        cb();
+    });
+}
+
+function loadConfFile(cb) {
+    // Try to load configuration. If not found start utility to create it.
+    try {
+        conf = require(confFile);
+        cb();
+    }
+    catch(e) {
+        console.log('Warning: nodegame-generator conf file ' +
+                    'not found or not readable');
+        console.log('');
+        createConfFile(cb);
+    }
+}
+
+
+// Parsing options.
+program.parse(process.argv);
