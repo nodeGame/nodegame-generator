@@ -58,7 +58,7 @@ program
 
 program
     .version(version)
-    .command('conf')
+    .command('update-conf')
     .description('Start nodegame configuration utility')
     .action(function(env, options){
         createConfFile(options);
@@ -519,7 +519,7 @@ function createConfFile(cb) {
                 console.log("         Author email: ", conf.email);
                 console.log('');
                 console.log('');
-                console.log('To change run nodegame conf');
+                console.log('To change run nodegame update-conf');
 
                 rl.close();
 
@@ -542,7 +542,7 @@ function writeConfFile(conf, cb) {
             console.log('');
         }
 
-        cb();
+        if (cb) cb();
     });
 }
 
