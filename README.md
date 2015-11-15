@@ -17,9 +17,14 @@ The quickest way to get started with nodeGame is to utilize the executable `node
 Create the game:
 
 ```bash
-$ nodegame /tmp/mygame myname myemail@com
+$ nodegame create-game /tmp/mygame myname myemail@com
 ```
 
+Update configuration file:
+
+```bash
+$ nodegame update-conf
+```
 
 ## Command Line Options
 
