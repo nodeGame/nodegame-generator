@@ -1,0 +1,111 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node', '/usr/local/bin/npm', 'publish', '-f' ]
+2 info using npm@2.11.3
+3 info using node@v0.12.7
+4 verbose node symlink /usr/local/bin/node
+5 warn using --force I sure hope you know what you are doing.
+6 verbose publish [ '.' ]
+7 silly cache add args [ '.', null ]
+8 verbose cache add spec .
+9 silly cache add parsed spec { raw: '.',
+9 silly cache add   scope: null,
+9 silly cache add   name: null,
+9 silly cache add   rawSpec: '.',
+9 silly cache add   spec: '/var/www/nodegame-generator',
+9 silly cache add   type: 'directory' }
+10 verbose addLocalDirectory /home/stefano/.npm/nodegame-generator/0.1.1/package.tgz not in flight; packing
+11 verbose tar pack [ '/home/stefano/.npm/nodegame-generator/0.1.1/package.tgz',
+11 verbose tar pack   '/var/www/nodegame-generator' ]
+12 verbose tarball /home/stefano/.npm/nodegame-generator/0.1.1/package.tgz
+13 verbose folder /var/www/nodegame-generator
+14 info prepublish nodegame-generator@0.1.1
+15 verbose addLocalTarball adding from inside cache /home/stefano/.npm/nodegame-generator/0.1.1/package.tgz
+16 silly cache afterAdd nodegame-generator@0.1.1
+17 verbose afterAdd /home/stefano/.npm/nodegame-generator/0.1.1/package/package.json not in flight; writing
+18 verbose afterAdd /home/stefano/.npm/nodegame-generator/0.1.1/package/package.json written
+19 silly publish { name: 'nodegame-generator',
+19 silly publish   description: 'NodeGame\' game generator',
+19 silly publish   version: '0.1.1',
+19 silly publish   author: { name: 'Stefano Balietti', email: 'futur.dorko@gmail.com' },
+19 silly publish   keywords:
+19 silly publish    [ 'nodegame',
+19 silly publish      'framework',
+19 silly publish      'web',
+19 silly publish      'game',
+19 silly publish      'multiplayer',
+19 silly publish      'realtime' ],
+19 silly publish   repository:
+19 silly publish    { type: 'git',
+19 silly publish      url: 'git+https://github.com/nodegame/generator.git' },
+19 silly publish   license: 'MIT',
+19 silly publish   dependencies:
+19 silly publish    { commander: '2.6.0',
+19 silly publish      mkdirp: '0.5.0',
+19 silly publish      'sorted-object': '1.0.0',
+19 silly publish      JSUS: '*' },
+19 silly publish   main: 'bin/nodegame',
+19 silly publish   preferGlobal: true,
+19 silly publish   bin: { express: './bin/nodegame' },
+19 silly publish   devDependencies: { mocha: '~2.1.0' },
+19 silly publish   engines: { node: '>= 0.10' },
+19 silly publish   files: [ 'LICENSE', 'bin/', 'templates/' ],
+19 silly publish   scripts:
+19 silly publish    { test: 'mocha --reporter spec --bail --check-leaks test/',
+19 silly publish      'test-ci': 'mocha --reporter spec --check-leaks test/' },
+19 silly publish   readme: '[nodeGame\'](https://www.nodegame.org) game generator.\n\n[![NPM Version][npm-image]][npm-url]\n[![NPM Downloads][downloads-image]][downloads-url]\n[![Linux Build][travis-image]][travis-url]\n\n## Installation\n\n```sh\n$ npm install -g nodegame-generator\n```\n\n## Quick Start\n\nThe quickest way to get started with nodeGame is to utilize the executable `nodegame(1)` to generate a new game as shown below:\n\nCreate the game:\n\n```bash\n$ nodegame /tmp/mygame myname myemail@com\n```\n\n\n## Command Line Options\n\nThis generator can also be further configured with the following command line flags.\n\n    -h, --help          output usage information\n    -V, --version       output the version number\n        --git           add .gitignore\n    -f, --force         force on non-empty directory\n\n## Kudos\n\nBased on a fork of [Express Generator](https://github.com/expressjs/generator).\n\n## License\n\n[MIT](LICENSE)\n\n[npm-image]: https://img.shields.io/npm/v/nodegame-generator.svg\n[npm-url]: https://npmjs.org/package/nodegame-generator\n[travis-image]: https://img.shields.io/travis/nodegamejs/generator/master.svg\n[travis-url]: https://travis-ci.org/nodegamejs/generator\n[downloads-image]: https://img.shields.io/npm/dm/nodegame-generator.svg\n[downloads-url]: https://npmjs.org/package/nodegame-generator\n',
+19 silly publish   readmeFilename: 'README.md',
+19 silly publish   gitHead: 'a10e906c618db19edbbe3e5242d49802be30fac3',
+19 silly publish   bugs: { url: 'https://github.com/nodegame/generator/issues' },
+19 silly publish   homepage: 'https://github.com/nodegame/generator#readme',
+19 silly publish   _id: 'nodegame-generator@0.1.1',
+19 silly publish   _shasum: '695e50d307e4303d6074418523f914761d49ea83',
+19 silly publish   _from: '.' }
+20 verbose getPublishConfig undefined
+21 silly mapToRegistry name nodegame-generator
+22 silly mapToRegistry using default registry
+23 silly mapToRegistry registry https://registry.npmjs.org/
+24 silly mapToRegistry uri https://registry.npmjs.org/nodegame-generator
+25 verbose publish registryBase https://registry.npmjs.org/
+26 silly publish uploading /home/stefano/.npm/nodegame-generator/0.1.1/package.tgz
+27 verbose request uri https://registry.npmjs.org/nodegame-generator
+28 verbose request sending authorization for write operation
+29 info attempt registry request try #1 at 1:02:28 PM
+30 verbose request id 14287813d8457489
+31 http request PUT https://registry.npmjs.org/nodegame-generator
+32 http 403 https://registry.npmjs.org/nodegame-generator
+33 verbose headers { 'content-type': 'application/json',
+33 verbose headers   'cache-control': 'max-age=60',
+33 verbose headers   'content-length': '95',
+33 verbose headers   'accept-ranges': 'bytes',
+33 verbose headers   date: 'Sun, 15 Nov 2015 12:02:30 GMT',
+33 verbose headers   via: '1.1 varnish',
+33 verbose headers   connection: 'keep-alive',
+33 verbose headers   'x-served-by': 'cache-iad2123-IAD',
+33 verbose headers   'x-cache': 'MISS',
+33 verbose headers   'x-cache-hits': '0',
+33 verbose headers   'x-timer': 'S1447588949.463369,VS0,VE1197' }
+34 verbose request invalidating /home/stefano/.npm/registry.npmjs.org/nodegame-generator on PUT
+35 error publish Failed PUT 403
+36 verbose stack Error: "You cannot publish over the previously published version 0.1.1." : nodegame-generator
+36 verbose stack     at CachingRegistryClient.<anonymous> (/opt/node-v0.12.7-linux-x86/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:247:14)
+36 verbose stack     at Request._callback (/opt/node-v0.12.7-linux-x86/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:170:14)
+36 verbose stack     at Request.self.callback (/opt/node-v0.12.7-linux-x86/lib/node_modules/npm/node_modules/request/request.js:354:22)
+36 verbose stack     at Request.emit (events.js:110:17)
+36 verbose stack     at Request.<anonymous> (/opt/node-v0.12.7-linux-x86/lib/node_modules/npm/node_modules/request/request.js:1207:14)
+36 verbose stack     at Request.emit (events.js:129:20)
+36 verbose stack     at IncomingMessage.<anonymous> (/opt/node-v0.12.7-linux-x86/lib/node_modules/npm/node_modules/request/request.js:1153:12)
+36 verbose stack     at IncomingMessage.emit (events.js:129:20)
+36 verbose stack     at _stream_readable.js:908:16
+36 verbose stack     at process._tickCallback (node.js:355:11)
+37 verbose statusCode 403
+38 verbose pkgid nodegame-generator
+39 verbose cwd /var/www/nodegame-generator
+40 error Linux 3.0.0-12-generic-pae
+41 error argv "/usr/local/bin/node" "/usr/local/bin/npm" "publish" "-f"
+42 error node v0.12.7
+43 error npm  v2.11.3
+44 error code E403
+45 error "You cannot publish over the previously published version 0.1.1." : nodegame-generator
+46 error If you need help, you may report this error at:
+46 error     <https://github.com/npm/npm/issues>
+47 verbose exit [ 1, true ]
