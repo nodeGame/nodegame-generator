@@ -431,9 +431,8 @@ function loadTemplate(name) {
  * Create game.
  */
 function createGame(options) {
-    debugger
     var author, authorEmail, destinationPath;
-    var appName;
+    var appName, str;
 
     if (!options.game) {
         console.log('Error: game name missing');
@@ -468,7 +467,11 @@ function createGame(options) {
                           program.verbose);
         }
         else {
-            confirm(destinationPath + ' is not empty, continue? [y/N] ',
+            colorWrite('Warning!');
+            console.log('');
+            str = destinationPath + ' is not empty, do '
+                + 'you want to continue? [y/N] ';
+            confirm(str,
                     function (ok) {
 
                         if (ok) {
@@ -491,12 +494,27 @@ function createGame(options) {
  */
 function createConfFile(cb) {
 
-    var rl = readline.createInterface({
+    var rl, str;
+
+    rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
     });
 
-    rl.question('Default nodeGame games folder path: ', function(answer) {
+    console.log('');
+    str = 'Default nodeGame games folder path: ';
+    if (conf.gamesFolder) str += '[' + conf.gamesFolder + '] ';
+
+    rl.question(str, function(answer) {
+
+        if (!answer) answer = conf.gamesFolder;
+
+        if (!fs.existsSync(answer)) {
+            console.log('Error: directory not existing: ' + answer);
+            process.exit();
+            // Must return, otherwise jumps to the next question already.
+            return;
+        }
 
         // Add trailing slashes.
         if (launchedFromCmd()) {
@@ -506,31 +524,30 @@ function createConfFile(cb) {
             if (answer.charAt(answer.length-1) !== '/') answer += '/';
         }
 
-        if (!fs.existsSync(answer)) {
-            console.log('Error: directory not existing: ' + answer);
-            process.exit();
-            // Must return, otherwise jumps to the next question already.
-            return;
-        }
-
         conf.gamesFolder = answer;
 
-        rl.question('Default author name: ', function(answer) {
+        str = 'Default author name: ';
+        if (conf.author) str += '[' + conf.author +'] ';
 
-            conf.author = answer;
+        rl.question(str, function(answer) {
 
-            rl.question('Default author email: ', function(answer) {
+            if (answer) conf.author = answer;
 
-                conf.email = answer;
+            str = 'Default author email: ';
+            if (conf.email) str += '[' + conf.email +'] ';
+            rl.question(str, function(answer) {
+
+                if (answer) conf.email = answer;
 
                 console.log('');
+                colorWrite('New configuration: ');
                 console.log('');
                 console.log("    Games folder path: ", conf.gamesFolder);
                 console.log("          Author name: ", conf.author);
                 console.log("         Author email: ", conf.email);
                 console.log('');
-                console.log('');
                 console.log('To change run nodegame update-conf');
+                console.log('');
 
                 rl.close();
 
@@ -546,7 +563,9 @@ function writeConfFile(conf, cb) {
     str = JSON.stringify(conf, null, 4);
     fs.writeFile(confFile, str, function(err) {
         if (err) {
-            console.log('An error occurred. Could not write ' + confFile);
+            console.log('');
+            colorWrite('Error!');
+            console.log('Could not write ' + confFile);
             console.log(err);
             console.log('');
             console.log('Trying to continue...');
@@ -561,17 +580,27 @@ function loadConfFile(cb) {
     // Try to load configuration. If not found start utility to create it.
     try {
         conf = require(confFile);
-        cb();
+        if (!conf.author || !conf.email || !conf.gamesFolder) {
+            createConfFile(cb);
+        }
+        else {
+            cb();
+        }
     }
     catch(e) {
         console.log('');
-        console.log('Warning: nodegame-generator conf file ' +
+        colorWrite('Warning!');
+        console.log('');
+        console.log('nodegame-generator conf file ' +
                     'not found or not readable');
         console.log('');
         createConfFile(cb);
     }
 }
 
+function colorWrite(str) {
+    console.log('\x1b[36m' + str + '\x1b[0m');
+}
 
 // Parsing options.
 program.parse(process.argv);
