@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.2.0
+- Default values prompted
+- Exit if games dir does not exists
+- Beautified.
+
 ## 0.1.2:
 - Adding conf dir in npm package
 

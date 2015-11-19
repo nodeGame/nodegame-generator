@@ -9,7 +9,6 @@ Session.vim
 .\#*
 auth/descil.conf.js
 *.DS_Store
-.DS_Store
 
 *.log
 
