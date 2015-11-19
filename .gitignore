@@ -12,3 +12,5 @@ auth/descil.conf.js
 .DS_Store
 
 *.log
+
+conf/generator.conf.json

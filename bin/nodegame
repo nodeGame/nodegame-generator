@@ -64,10 +64,6 @@ program
         createConfFile(options);
     });
 
-// if (!exit.exited) {
-//     main();
-// }
-
 /**
  * Install a before function; AOP.
  */
@@ -502,6 +498,21 @@ function createConfFile(cb) {
 
     rl.question('Default nodeGame games folder path: ', function(answer) {
 
+        // Add trailing slashes.
+        if (launchedFromCmd()) {
+            if (answer.substring(answer.length-2)!== '\\') answer += '\\';
+        }
+        else {
+            if (answer.charAt(answer.length-1) !== '/') answer += '/';
+        }
+
+        if (!fs.existsSync(answer)) {
+            console.log('Error: directory not existing: ' + answer);
+            process.exit();
+            // Must return, otherwise jumps to the next question already.
+            return;
+        }
+
         conf.gamesFolder = answer;
 
         rl.question('Default author name: ', function(answer) {
@@ -553,6 +564,7 @@ function loadConfFile(cb) {
         cb();
     }
     catch(e) {
+        console.log('');
         console.log('Warning: nodegame-generator conf file ' +
                     'not found or not readable');
         console.log('');
