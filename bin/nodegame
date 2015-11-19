@@ -502,7 +502,7 @@ function createConfFile(cb) {
     });
 
     console.log('');
-    str = 'Default nodeGame games folder path: ';
+    str = 'Path to nodeGame games folder: ';
     if (conf.gamesFolder) str += '[' + conf.gamesFolder + '] ';
 
     rl.question(str, function(answer) {
