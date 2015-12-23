@@ -1,7 +1,7 @@
 {
   "name": "nodegame-generator",
   "description": "NodeGame' game generator",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Stefano Balietti <futur.dorko@gmail.com>",
   "keywords": [
     "nodegame",
@@ -30,11 +30,6 @@
   "engines": {
     "node": ">= 0.10"
   },
-  "files": [
-    "LICENSE",
-    "bin/",
-    "templates/"
-  ],
   "scripts": {
     "test": "mocha --reporter spec --bail --check-leaks test/",
     "test-ci": "mocha --reporter spec --check-leaks test/"
