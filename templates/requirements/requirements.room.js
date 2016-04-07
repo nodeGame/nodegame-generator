@@ -74,7 +74,7 @@ module.exports = function(settings, room, runtimeConf) {
     stager.addStage({
         id: 'requirements',
         cb: function() {
-            console.log('Requirements room created.');
+            console.log('Requirements room created: ' + channel.name + '.');
         }
     });
 
