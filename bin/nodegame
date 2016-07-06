@@ -52,32 +52,31 @@ program
     });
 
 program
-    .command('create-game [options] [dir] [author] [author_email]')
-    .description('Creates a new game in the games directory')
-    .option('    --git', 'add .gitignore')
-    .option('-g, --game', 'use chosen game as template')
-    .option('-f, --force', 'force on non-empty directory')
-    .option('-v, --verbose', 'verbose output')
-    .action(function(game, author, email) {
-        //console.log(arguments);
-        // console.log(options, dir, author, email);
-debugger
-        loadConfFile(function() {
-            createGame({
-                game: game,
-                author: author,
-                email: email
-            });
-        });
-
-    });
-
-program
     .version(version)
     .command('update-conf')
     .description('Start nodegame configuration utility')
     .action(function(env, options){
         createConfFile(options);
+    });
+
+program
+    .command('create-game [game_name] [author] [author_email]')
+    .description('Creates a new game in the games directory')
+    .option('    --git', 'add .gitignore')
+    .option('-t, --template <template>', 'set the template for game')
+    .option('-f, --force', 'force on non-empty directory')
+    .option('-v, --verbose', 'verbose output')
+    .action(function(gameName, author, email, options) {
+
+        loadConfFile(function() {
+            createGame({
+                game: gameName,
+                author: author,
+                email: email,
+                options: options
+            });
+        });
+
     });
 
 /**
@@ -115,13 +114,17 @@ function confirm(msg, callback) {
  * @param {String} outDir
  */
 
-function createGameDir(gameName, outDir, author, authorEmail, verbose) {
+function createGameDir(template, gameName, outDir,
+                       author, authorEmail, options) {
 
     // Number of synchronous / asynchronous operations.
     var wait = 8;
-
+    var verbose = !!options.verbose;
+    var doGit = !!options.git;
     var d = new Date();
     var year = d.getFullYear();
+
+    var fileName;
 
     // Fix trailing slash.
     if (outDir.charAt(outDir.length) !== '/') {
@@ -186,44 +189,48 @@ function createGameDir(gameName, outDir, author, authorEmail, verbose) {
     // Loading Templates.
 
     // AUTH.
-    var auth = loadTemplate('auth/auth.js');
-    var authSettings = loadTemplate('auth/auth.settings.js');
-    var authCodes = loadTemplate('auth/auth.codes.js');
+    var auth = loadTemplate(template, 'auth/auth.js');
+    var authSettings = loadTemplate(template, 'auth/auth.settings.js');
+    var authCodes = loadTemplate(template, 'auth/auth.codes.js');
 
     // CHANNEL.
-    var channelSettings = loadTemplate('channel/channel.settings.js');
-    var channelSecret = loadTemplate('channel/channel.secret.js');
-    var channelCredentials = loadTemplate('channel/channel.credentials.js');
+    var channelSettings = loadTemplate(template, 'channel/channel.settings.js');
+    var channelSecret = loadTemplate(template, 'channel/channel.secret.js');
+    var channelCredentials = loadTemplate(template,
+                                          'channel/channel.credentials.js');
 
     // GAME.
-    var gameStages = loadTemplate('game/game.stages.js');
-    var gameSetup = loadTemplate('game/game.setup.js');
-    var gameSettings = loadTemplate('game/game.settings.js');
+    var gameStages = loadTemplate(template, 'game/game.stages.js');
+    var gameSetup = loadTemplate(template, 'game/game.setup.js');
+    var gameSettings = loadTemplate(template, 'game/game.settings.js');
 
     // GAME / client_types.
-    var typePlayer = loadTemplate('game/client_types/player.js');
-    var typeBot = loadTemplate('game/client_types/bot.js');
-    var typeLogic = loadTemplate('game/client_types/logic.js');
-    var typePhantom = loadTemplate('game/client_types/phantom.js');
+    var typePlayer = loadTemplate(template, 'game/client_types/player.js');
+    var typeBot = loadTemplate(template, 'game/client_types/bot.js');
+    var typeLogic = loadTemplate(template, 'game/client_types/logic.js');
+    var typePhantom = loadTemplate(template, 'game/client_types/phantom.js');
 
     // PUBLIC.
-    var indexPage = loadTemplate('public/index.htm');
-    var gamePage = loadTemplate('public/game.htm');
-    var instrPage = loadTemplate('public/instructions.htm');
-    var endPage = loadTemplate('public/end.htm');
-    var indexJS = loadTemplate('public/js/index.js');
+    var indexPage = loadTemplate(template, 'public/index.htm');
+    var gamePage = loadTemplate(template, 'public/game.htm');
+    var instrPage = loadTemplate(template, 'public/instructions.htm');
+    var endPage = loadTemplate(template, 'public/end.htm');
+    var indexJS = loadTemplate(template, 'public/js/index.js');
 
     // VIEWS.
 
 
     // WAITROOM.
-    var waitroomSettings = loadTemplate('waitroom/waitroom.settings.js');
-    var waitroom = loadTemplate('waitroom/waitroom.js');
+    var waitroomSettings = loadTemplate(template,
+                                        'waitroom/waitroom.settings.js');
+    var waitroom = loadTemplate(template, 'waitroom/waitroom.js');
 
     // REQUIREMENTS.
-    var requirementsSettings = loadTemplate('requirements/requirements.settings.js');
-    var requirementsRoom = loadTemplate('requirements/requirements.room.js');
-    var requirements = loadTemplate('requirements/requirements.js');
+    fileName = 'requirements/requirements.settings.js';
+    var requirementsSettings = loadTemplate(template, fileName);
+    fileName = 'requirements/requirements.room.js';
+    var requirementsRoom = loadTemplate(template, fileName);
+    var requirements = loadTemplate(template, 'requirements/requirements.js');
 
     mkdir(outDir, function(){
 
@@ -366,7 +373,7 @@ function createGameDir(gameName, outDir, author, authorEmail, verbose) {
         // write files
         write(outDir + 'package.json', JSON.stringify(pkg, null, 4));
 
-        if (program.git) {
+        if (doGit) {
             write(outDir + '.gitignore',
                   fs.readFileSync(root + '/.gitignore', 'utf-8'));
         }
@@ -437,23 +444,42 @@ function isAbsolute(filePath) {
 /**
  * Load template file.
  */
-
-function loadTemplate(name) {
+function loadTemplate(template, file) {
     return fs.readFileSync(
-        path.join(__dirname, '..', 'templates', name), 'utf-8');
+        path.join(__dirname, '..', 'templates', template, file), 'utf-8');
+}
+
+function templateExists(template) {
+    var i, len;
+    i = -1, len = templates.length;
+    for ( ; ++i < len ; ) {
+        if (templates[i] === template) return true;
+    }
+    return false;
 }
 
 /**
  * Create game.
+ *
+ * By default, uses the dictator-game template.
  */
 function createGame(options) {
     var author, authorEmail, destinationPath;
-    var appName, str;
+    var template, appName, str;
 
     if (!options.game) {
         console.log('Error: game name missing');
         return;
     }
+
+    if (options.template && !templateExists(options.template)) {
+        console.log('Error: template not found: ' + options.template);
+        return;
+    }
+    else {
+        template = 'dictator';
+    }
+
 
     if (isAbsolute(options.game)) {
         destinationPath = options.game;
@@ -479,8 +505,12 @@ function createGame(options) {
     // Generate game. Check if it is empty.
     emptyDirectory(destinationPath, function(empty) {
         if (empty || program.force) {
-            createGameDir(appName, destinationPath, author, authorEmail,
-                          program.verbose);
+            createGameDir(template,
+                          appName,
+                          destinationPath,
+                          author,
+                          authorEmail,
+                          options.options);
         }
         else {
             colorWrite('Warning!');

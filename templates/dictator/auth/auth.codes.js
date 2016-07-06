@@ -12,7 +12,7 @@
  *        id:    '123XYZ', // The client id (must be unique).
  *        pwd:   'pwd',   // The authentication password (optional)
  *     }
- * 
+ *
  * Additional properties can be added and will be stored in the registry.
  *
  * Notice! For real authorization codes it use 32 random characters and digits.
@@ -41,7 +41,7 @@ module.exports = function(settings, done) {
             codes.push({
 
                 // Client id.
-                id: i + '_access',                
+                id: i + '_access',
 
                 // Add a pwd field for extra security.
                 // pwd: i + '_pwd',
@@ -54,7 +54,7 @@ module.exports = function(settings, done) {
         }
         return codes;
     }
-    
+
     // Example: load codes asynchronously
 
     // loadCodesFromDatabase(function(err, codes) {

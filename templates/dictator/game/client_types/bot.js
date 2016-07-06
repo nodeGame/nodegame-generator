@@ -15,5 +15,5 @@ module.exports = function(game, settings, treatmentName, gameRoom) {
     // Must implement the stages here.
 
     // ...
-    
+
 };

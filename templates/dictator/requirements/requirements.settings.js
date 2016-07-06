@@ -17,7 +17,7 @@ module.exports = {
 
     // Future option. Not available now. Path to login page in `public/`
     page: 'requirements.htm',
-    
+
     // Optional. Maximum time to pass the tests of all requirements.
     maxExecTime: 8000,
 
