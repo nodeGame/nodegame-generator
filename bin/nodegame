@@ -30,22 +30,38 @@ var conf = {
     gamesFolder: undefined
 };
 
+var templates = [ 'ultimatum', 'dictator' ];
+
 // CLI
 
 before(program, 'outputHelp', function () {
     this.allowUnknownOption();
 });
 
+
+program
+    .command('list-templates')
+    .description('List all available game templates')
+    .action(function() {
+        var i, len;
+        i = -1, len = templates.length;
+        for ( ; ++i < len ; ) {
+            console.log(templates[i]);
+        }
+        console.log();
+    });
+
 program
     .command('create-game [options] [dir] [author] [author_email]')
     .description('Creates a new game in the games directory')
     .option('    --git', 'add .gitignore')
+    .option('-g, --game', 'use chosen game as template')
     .option('-f, --force', 'force on non-empty directory')
     .option('-v, --verbose', 'verbose output')
     .action(function(game, author, email) {
         //console.log(arguments);
         // console.log(options, dir, author, email);
-
+debugger
         loadConfFile(function() {
             createGame({
                 game: game,
