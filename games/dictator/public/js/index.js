@@ -30,9 +30,9 @@ window.onload = function() {
     // Connecting.
     if (location.search) {
         // Pass query arguments on.
-        node.connect('/{NAME}', { query: location.search.substr(1) });
+        node.connect({ query: location.search.substr(1) });
     }
     else {
-        node.connect('/{NAME}');
+        node.connect();
     }
 };
