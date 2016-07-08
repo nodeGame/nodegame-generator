@@ -84,7 +84,6 @@ program
 /**
  * Install a before function; AOP.
  */
-
 function before(obj, method, fn) {
     var old = obj[method];
 
@@ -97,7 +96,6 @@ function before(obj, method, fn) {
 /**
  * Prompt for confirmation on STDOUT/STDIN
  */
-
 function confirm(msg, callback) {
     var rl = readline.createInterface({
         input: process.stdin,
@@ -115,12 +113,11 @@ function confirm(msg, callback) {
  *
  * @param {String} outDir
  */
-
 function createGameDir(template, gameName, outDir,
                        author, authorEmail, options) {
-debugger
+
     // Number of synchronous / asynchronous operations.
-    var wait = 8;
+    var wait = 9;
     var verbose = !!options.verbose;
     var doGit = !!options.git;
     var d = new Date();
@@ -176,10 +173,11 @@ debugger
         console.log();
 
         console.log();
+
 //        console.log('   run the app:');
 //
 //        if (launchedFromCmd()) {
-//            console.log('     %s SET DEBUG=%s:* & npm start', prompt, gameName);
+//          console.log('     %s SET DEBUG=%s:* & npm start', prompt, gameName);
 //        } else {
 //            console.log('     %s DEBUG=%s:* npm start', prompt, gameName);
 //        }
@@ -234,6 +232,9 @@ debugger
     var requirementsRoom = loadTemplate(template, fileName);
     var requirements = loadTemplate(template, 'requirements/requirements.js');
 
+    // LEVELS.
+    var levelsREADME = loadTemplate('levels/README.md');
+
     mkdir(outDir, function(){
 
         mkdir(outDir + 'data');
@@ -257,12 +258,14 @@ debugger
             // Settings.
             channelSettings = substituteHeader(channelSettings);
             channelSettings = channelSettings.replace(/{NAME}/g, gameName);
-            channelSettings = channelSettings.replace('{ADMIN}', gameName + '/admin');
+            channelSettings = channelSettings.replace('{ADMIN}',
+                                                      gameName + '/admin');
             write(outDir + 'channel/channel.settings.js', channelSettings);
 
             // Credentials.
             channelCredentials = substituteHeader(channelCredentials);
-            write(outDir + 'channel/channel.credentials.js.sample', channelCredentials);
+            write(outDir + 'channel/channel.credentials.js.sample',
+                  channelCredentials);
 
             // Secret.
             channelSecret = substituteHeader(channelSecret);
@@ -350,12 +353,19 @@ debugger
             requirementsRoom = substituteHeader(requirementsRoom);
 
             write(outDir + 'requirements/requirements.js', requirements);
-            write(outDir + 'requirements/requirements.settings.js', requirementsSettings);
-            write(outDir + 'requirements/requirements.room.js.sample', requirementsRoom);
+            write(outDir + 'requirements/requirements.settings.js',
+                  requirementsSettings);
+            write(outDir + 'requirements/requirements.room.js.sample',
+                  requirementsRoom);
 
             complete();
         });
 
+        // LEVELS.
+        mkdir(outDir + 'levels', function() {
+            write(outDir + 'levels/README.md');
+            complete();
+        });
 
         // Package.json
          var pkg = {
@@ -385,12 +395,22 @@ debugger
 }
 
 /**
+ * Copies a file to a destination
+ *
+ *
+ *
+ */
+function copyTemplate(, to) {
+    from = path.join(__dirname, '..', 'templates', from);
+    write(to, fs.readFileSync(from, 'utf-8'));
+}
+
+/**
  * Check if the given directory `path` is empty.
  *
  * @param {String} dir
  * @param {Function} fn
  */
-
 function emptyDirectory(dir, fn) {
     fs.readdir(dir, function(err, files){
         if (err && 'ENOENT' != err.code) throw err;
@@ -401,7 +421,6 @@ function emptyDirectory(dir, fn) {
 /**
  * Graceful exit for async STDIO
  */
-
 function exit(code) {
     // flush output for Node.js Windows pipe bug
     // https://github.com/joyent/node/issues/6247 is just one bug example
@@ -427,7 +446,6 @@ function exit(code) {
 /**
  * Determine if launched from cmd.exe
  */
-
 function launchedFromCmd() {
     return process.platform === 'win32'
         && process.env._ === undefined;
