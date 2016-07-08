@@ -11,7 +11,6 @@
  * http://www.nodegame.org
  * ---
  */
-
 module.exports = function(settings, stages) {
 
     var setup = {};

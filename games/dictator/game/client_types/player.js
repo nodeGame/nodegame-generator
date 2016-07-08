@@ -30,11 +30,7 @@ module.exports = function(treatmentName, settings, stager, setup, gameRoom) {
 
         // Bid is valid if it is a number between 0 and 100.
         this.isValidBid = function(n) {
-            if (typeof n !== 'string') return false;
-            if (!/^\d+$/.test(n)) return false;
-            n = parseInt(n, 10);
-            if (n < 0 || n > 100) return false;
-            return n;
+            return node.JSUS.isInt(n, -1, 101);
         };
 
         this.randomOffer = function(offer, submitOffer) {
@@ -50,106 +46,96 @@ module.exports = function(treatmentName, settings, stager, setup, gameRoom) {
 
         // Add widgets.
         this.visualRound = node.widgets.append('VisualRound', header);
-        this.timer = node.widgets.append('VisualTimer', header);
+        this.visualTimer = node.widgets.append('VisualTimer', header);
+
+        this.doneButton = node.widgets.append('DoneButton', header);
+
+        // Additional debug information while developing the game.
+        // this.debugInfo = node.widgets.append('DebugInfo', header)
     });
 
     stager.extendStep('instructions', {
-        cb: function() {
-
-            W.loadFrame('instructions.htm', function() {
-
-                var button = W.getElementById('read');
-                button.onclick = function() {
-                    node.done();
-                };
-
-            });
-        },
-        timer: 60000
+        frame: 'instructions.htm'
     });
 
     stager.extendStep('game', {
+        donebutton: false,
+        frame: 'game.htm',
         cb: function() {
-            W.loadFrame('game.htm', function() {
 
-                node.on.data('ROLE_DICTATOR', function(msg) {
-                    var button, offer, div;
+            node.on.data('ROLE_DICTATOR', function(msg) {
+                var button, offer, div;
 
-                    // Make the dictator display visible.
-                    div = W.getElementById('dictator').style.display = '';
-                    button = W.getElementById('submitOffer');
-                    offer =  W.getElementById('offer');
+                // Make the dictator display visible.
+                div = W.getElementById('dictator').style.display = '';
+                button = W.getElementById('submitOffer');
+                offer =  W.getElementById('offer');
 
 
-                    // Setup the timer.
-                    node.game.timer.init({
-                        milliseconds: node.game.settings.timer,
-                        timeup: function() {
-                            node.game.randomOffer(offer, button);
-                        }
-                    });
-                    node.game.timer.updateDisplay();
-                    node.game.timer.startTiming();
+                // Setup the timer.
+                node.game.visualTimer.init({
+                    milliseconds: node.game.settings.bidTime,
+                    timeup: function() {
+                        node.game.randomOffer(offer, button);
+                    }
+                });
+                node.game.visualTimer.updateDisplay();
+                node.game.visualTimer.startTiming();
 
-                    // Listen on click event.
-                    button.onclick = function() {
-                        var to, decision;
-                        // Validate offer.
-                        decision = node.game.isValidBid(offer.value);
-                        if ('number' !== typeof decision) {
-                            W.writeln('Please enter a number between ' +
-                                      '0 and 100.');
-                            return;
-                        }
-                        button.disabled = true;
+                // Listen on click event.
+                button.onclick = function() {
+                    var to, decision;
+                    // Validate offer.
+                    decision = node.game.isValidBid(offer.value);
+                    if ('number' !== typeof decision) {
+                        W.writeln('Please enter a number between ' +
+                                  '0 and 100.');
+                        return;
+                    }
+                    button.disabled = true;
 
-                        // The recipient of the offer.
-                        to = msg.data;
+                    // The recipient of the offer.
+                    to = msg.data;
 
-                        // Send the decision to the other player.
-                        node.say('decision', to, decision);
+                    // Send the decision to the other player.
+                    node.say('decision', to, decision);
 
-                        // Mark the end of the round, and
-                        // store the decision in the server.
-                        node.done({ offer: decision });
-                    };
+                    // Mark the end of the round, and
+                    // store the decision in the server.
+                    node.done({ offer: decision });
+                };
+            });
+
+            node.on.data('ROLE_OBSERVER', function(msg) {
+                var button, span, offer, div;
+
+                node.game.visualTimer.clear();
+                node.game.visualTimer.startWaiting({
+                    milliseconds: node.game.settings.bidTime,
+                    timeup: false
                 });
 
-                node.on.data('ROLE_OBSERVER', function(msg) {
-                    var button, span, offer, div;
+                // Make the observer display visible.
+                div = W.getElementById('observer').style.display = '';
+                span = W.getElementById('dots');
+                W.addLoadingDots(span);
 
-                    node.game.timer.clear();
-                    node.game.timer.startWaiting({
-                        milliseconds: node.game.settings.timer,
-                        timeup: false
-                    });
+                node.on.data('decision', function(msg) {
+                    W.setInnerHTML('decision',
+                                   'The dictator offered: ' +
+                                   msg.data + ' ECU.');
 
-                    // Make the observer display visible.
-                    div = W.getElementById('observer').style.display = '';
-                    span = W.getElementById('dots');
-                    W.addLoadingDots(span);
-                    node.on.data('decision', function(msg) {
-                        var span;
-                        span = W.getElementById('decision');
-                        span.innerHTML = 'The dictator offered: ' + msg.data +
-                            ' ECU.';
-                        // Setting the step done with delay.
-                        setTimeout(function() {
-                            node.done();
-                        }, 5000);
-                    });
+                    node.timer.randomDone();
                 });
-
             });
         }
     });
 
     stager.extendStep('end', {
-        // frame: 'end.htm',
+        donebutton: false,
+        frame: 'end.htm',
         cb: function() {
-            W.loadFrame('end.htm');
-            node.game.timer.startTiming();
-            node.game.timer.setToZero();
+            node.game.visualTimer.setToZero();
         }
     });
 

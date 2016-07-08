@@ -24,6 +24,10 @@ module.exports = {
     // Numnber of game rounds repetitions.
     REPEAT: 4,
 
+    TIMER: {
+        instructions: 60000
+    },
+
     // Treatments definition.
 
     // They can contain any number of properties, and also overwrite
@@ -37,13 +41,13 @@ module.exports = {
         standard: {
             fullName: "Standard Treatment",
             description: "Longer time",
-            timer: 30000
+            bidTime: 30000
         },
 
         pressure: {
             fullName: "Time Pressure Treatment",
             description: "Short times to take decisions",
-            timer: 10000
+            bidTime: 10000
         },
 
     }
