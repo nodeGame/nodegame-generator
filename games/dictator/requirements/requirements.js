@@ -1,30 +1,36 @@
 /**
  * # Requirements functions
- * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
+ * Copyright(c) 2016 Stefano Balietti
  * MIT Licensed
  *
- * List of requirements to test, and what to do in case of failure and success
- *
- * http://www.nodegame.org
+ * Sets requiremetns for accessing the channel.
  * ---
  */
 module.exports = function(requirements, settings) {
 
-    // Requires list of default requirements.
     var ngr = require('nodegame-requirements');
 
-    /// Add requirements functions to the requirements object.
     requirements.add(ngr.nodegameBasic);
-    requirements.add(ngr.speedTest, settings.speedTest);
-    requirements.add(ngr.browserDetect, settings.excludeBrowsers);
     requirements.add(ngr.loadFrameTest);
-    requirements.add(ngr.cookieSupport);
 
-    // For debugging.
+    if (settings.cookieSupport) {
+        requirements.add(ngr.cookieSupport, settings.cookieSupport);
+    }
+
+    if ('object' !== typeof settings.speedTest) {
+        requirements.add(ngr.speedTest, settings.speedTest);
+    }
+
+    if ('undefined' !== typeof settings.excludeBrowsers) {
+        requirements.add(ngr.browserDetect, settings.excludeBrowsers);
+    }
+
+    if ('undefined' !== typeof settings.maxExecTime) {
+        requirements.setMaxExecutionTime(settings.maxExecTime);
+    }
+
     // requirements.add(ngr.testFail);
     // requirements.add(ngr.testSuccess);
-
-    requirements.setMaxExecutionTime(settings.maxExecTime);
 
     requirements.onFailure(function() {
         var str, args;

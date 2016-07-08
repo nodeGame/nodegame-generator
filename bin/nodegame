@@ -39,17 +39,18 @@ before(program, 'outputHelp', function () {
 });
 
 
-program
-    .command('list-templates')
-    .description('List all available game templates')
-    .action(function() {
-        var i, len;
-        i = -1, len = templates.length;
-        for ( ; ++i < len ; ) {
-            console.log(templates[i]);
-        }
-        console.log();
-    });
+// Not ready yet.
+// program
+//     .command('list-templates')
+//     .description('List all available game templates')
+//     .action(function() {
+//         var i, len;
+//         i = -1, len = templates.length;
+//         for ( ; ++i < len ; ) {
+//             console.log(templates[i]);
+//         }
+//         console.log();
+//     });
 
 program
     .version(version)
@@ -63,7 +64,8 @@ program
     .command('create-game [game_name] [author] [author_email]')
     .description('Creates a new game in the games directory')
     .option('    --git', 'add .gitignore')
-    .option('-t, --template <template>', 'set the template for game')
+    // Not yet ready.
+    // .option('-t, --template <template>', 'set the template for game')
     .option('-f, --force', 'force on non-empty directory')
     .option('-v, --verbose', 'verbose output')
     .action(function(gameName, author, email, options) {
@@ -116,7 +118,7 @@ function confirm(msg, callback) {
 
 function createGameDir(template, gameName, outDir,
                        author, authorEmail, options) {
-
+debugger
     // Number of synchronous / asynchronous operations.
     var wait = 8;
     var verbose = !!options.verbose;
@@ -334,7 +336,7 @@ function createGameDir(template, gameName, outDir,
             waitroom = substituteHeader(waitroom);
             waitroomSettings = substituteHeader(waitroomSettings);
 
-            write(outDir + 'waitroom/waitroom.js', waitroom);
+            write(outDir + 'waitroom/wait.room.js.sample', waitroom);
             write(outDir + 'waitroom/waitroom.settings.js', waitroomSettings);
 
             complete();
@@ -349,7 +351,7 @@ function createGameDir(template, gameName, outDir,
 
             write(outDir + 'requirements/requirements.js', requirements);
             write(outDir + 'requirements/requirements.settings.js', requirementsSettings);
-            write(outDir + 'requirements/requirements.room.js', requirementsRoom);
+            write(outDir + 'requirements/requirements.room.js.sample', requirementsRoom);
 
             complete();
         });
@@ -380,11 +382,6 @@ function createGameDir(template, gameName, outDir,
 
         complete();
     });
-}
-
-function copy_template(from, to) {
-    from = path.join(__dirname, '..', 'templates', from);
-    write(to, fs.readFileSync(from, 'utf-8'));
 }
 
 /**
@@ -446,7 +443,7 @@ function isAbsolute(filePath) {
  */
 function loadTemplate(template, file) {
     return fs.readFileSync(
-        path.join(__dirname, '..', 'templates', template, file), 'utf-8');
+        path.join(__dirname, '..', 'games', template, file), 'utf-8');
 }
 
 function templateExists(template) {
@@ -510,26 +507,28 @@ function createGame(options) {
                           destinationPath,
                           author,
                           authorEmail,
-                          options.options);
+                          options.options || {});
         }
         else {
             colorWrite('Warning!');
             console.log('');
             str = destinationPath + ' is not empty, do '
                 + 'you want to continue? [y/N] ';
-            confirm(str,
-                    function (ok) {
-
-                        if (ok) {
-                            process.stdin.destroy();
-                            createGameDir(appName, destinationPath,
-                                          author, authorEmail, program.verbose);
-                        }
-                        else {
-                            console.error('aborting');
-                            exit(1);
-                        }
-                    });
+            confirm(str, function(ok) {
+                if (ok) {
+                    process.stdin.destroy();
+                    createGameDir(template,
+                                  appName,
+                                  destinationPath,
+                                  author,
+                                  authorEmail,
+                                  options.options || {});
+                }
+                else {
+                    console.error('aborting');
+                    exit(1);
+                }
+            });
         }
     });
 }

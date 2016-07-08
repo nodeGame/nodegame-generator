@@ -1,29 +1,85 @@
 /**
  * # Requirements settings
- * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
+ * Copyright(c) 2016 Stefano Balietti
  * MIT Licensed
+ *
+ * Requirements settings file.
+ *
+ * Write custom test in requirements.js
  *
  * http://www.nodegame.org
  * ---
  */
+
 module.exports = {
 
-    // If enabled a Requirements room will be created in the channel,
-    // and all incoming connections will be tested there.
-    enabled: true, // [false] Default: TRUE.
+    /**
+     * ## enabled
+     *
+     * If TRUE, it creates a requirements room. Default, TRUE
+     */
+    enabled: true,
 
-    // Path the requirement room logic.
-    logicPath: './requirements.room.js',
+    /**
+     * ## maxExecTime
+     *
+     * If set, limits the maximum execution time for all requirement tests
+     */
+    maxExecTime: 6000,
 
-    // Future option. Not available now. Path to login page in `public/`
-    page: 'requirements.htm',
+    /**
+     * ## maxExecTime
+     *
+     * If set, client must exchange messages with server "quickly enough"
+     */
+    speedTest: {
+        messages: 10,
+        time: 1000
+    },
 
-    // Optional. Maximum time to pass the tests of all requirements.
-    maxExecTime: 8000,
+    /**
+     * ## cookieSupport
+     *
+     * If set, client must support setting cookies.
+     *
+     * Accepted values:
+     *
+     *   - 'persistent': cookies must persist across session
+     *   - 'session': cookies must be set within same session
+     */
+    cookieSupport: 'persistent'
 
-    // Optional. Which browsers are excluded.
-    excludeBrowsers: {
-        browser: 'netscape'
-    }
+    /**
+     * ## nextRoom
+     *
+     * If set, clients that pass the requirements are moved to this room.
+     *
+     * Default: the waiting room
+     */
+    // nextRoom: 'mynextroom',
+
+    /**
+     * ## doChecking
+     *
+     * If TRUE, start testing the requirements immediately. Default, TRUE
+     */
+    // doChecking: true,
+
+    /**
+     * ## logicPath
+     *
+     * Alternative path for a custom requirements room.
+     */
+    // logicPath: './requirements.room.js',
+
+    // # Reserved words for future requirements settings.
+
+    //  mode: 'auto',
+    //
+    //  page: 'requirements.htm',
+
+    //  excludeBrowsers: {
+    //      browser: 'netscape'
+    //  },
 
 };
