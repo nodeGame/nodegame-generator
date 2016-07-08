@@ -1,9 +1,11 @@
 /**
  * # Requirements functions
- * Copyright(c) 2016 Stefano Balietti
+ * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
  * Sets requiremetns for accessing the channel.
+ *
+ * http://nodegame.org
  * ---
  */
 module.exports = function(requirements, settings) {

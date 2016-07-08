@@ -1,6 +1,6 @@
 /**
  * # Channel settings
- * Copyright(c) 2015 {AUTHOR} <{AUTHOR_EMAIL}>
+ * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
  * The channel is divided into two internal servers: player and admin.

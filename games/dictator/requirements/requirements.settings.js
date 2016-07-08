@@ -1,13 +1,13 @@
 /**
  * # Requirements settings
- * Copyright(c) 2016 Stefano Balietti
+ * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
  * MIT Licensed
  *
  * Requirements settings file.
  *
- * Write custom test in requirements.js
+ * Add custom tests in requirements.js
  *
- * http://www.nodegame.org
+ * http://nodegame.org
  * ---
  */
 

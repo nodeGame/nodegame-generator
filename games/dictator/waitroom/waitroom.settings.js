@@ -1,5 +1,12 @@
 /**
- * Standard Waiting Room settings.
+ * # Waiting Room settings
+ * Copyright(c) {YEAR} {AUTHOR} <{AUTHOR_EMAIL}>
+ * MIT Licensed
+ *
+ * Waiting Room settings.
+ *
+ * http://nodegame.org
+ * ---
  */
 module.exports = {
 
@@ -60,7 +67,7 @@ module.exports = {
      * Overrides `MAX_WAIT_TIME`. Accepted values: any valid
      * argument to `Date` constructor.
      */
-    // START_DATE: 'December 13, 2015 13:24:00',
+    // START_DATE: 'December 31, {YEAR} 12:00:00',
     // START_DATE: new Date().getTime() + 30000,
 
     /**
