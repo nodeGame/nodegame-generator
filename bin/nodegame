@@ -9,6 +9,7 @@ var readline = require('readline');
 var sortedObject = require('sorted-object');
 
 var J = require('JSUS').JSUS;
+var ngt = require('nodegame-game-template');
 
 var _exit = process.exit;
 var eol = os.EOL;
@@ -192,7 +193,7 @@ function createGameDir(template, gameName, outDir,
     var auth = loadTemplate(template, 'auth/auth.js');
     var authSettings = loadTemplate(template, 'auth/auth.settings.js');
     var authCodes = loadTemplate(template, 'auth/auth.codes.js');
-
+debugger
     // CHANNEL.
     var channelSettings = loadTemplate(template, 'channel/channel.settings.js');
     var channelSecret = loadTemplate(template, 'channel/channel.secret.js');
@@ -460,8 +461,12 @@ function isAbsolute(filePath) {
  * Load template file.
  */
 function loadTemplate(template, file) {
-    return fs.readFileSync(
-        path.join(__dirname, '..', 'games', template, file), 'utf-8');
+    var templatePath;
+    templatePath = ngt.resolve(file);
+    return fs.readFileSync(templatePath, 'utf-8');
+    // It was:
+    //return fs.readFileSync(
+    //    path.join(__dirname, '..', 'games', template, file), 'utf-8');
 }
 
 function templateExists(template) {

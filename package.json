@@ -17,7 +17,8 @@
     "commander": "2.6.0",
     "mkdirp": "0.5.0",
     "sorted-object": "1.0.0",
-    "JSUS": "*"
+    "JSUS": "*",
+    "nodegame-game-template": "*"
   },
   "main": "bin/nodegame",
   "preferGlobal": true,
