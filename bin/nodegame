@@ -193,7 +193,7 @@ function createGameDir(template, gameName, outDir,
     var auth = loadTemplate(template, 'auth/auth.js');
     var authSettings = loadTemplate(template, 'auth/auth.settings.js');
     var authCodes = loadTemplate(template, 'auth/auth.codes.js');
-debugger
+
     // CHANNEL.
     var channelSettings = loadTemplate(template, 'channel/channel.settings.js');
     var channelSecret = loadTemplate(template, 'channel/channel.secret.js');
@@ -210,6 +210,7 @@ debugger
     var typeBot = loadTemplate(template, 'game/client_types/bot.js');
     var typeLogic = loadTemplate(template, 'game/client_types/logic.js');
     var typePhantom = loadTemplate(template, 'game/client_types/phantom.js');
+    var typeAutoplay = loadTemplate(template, 'game/client_types/autoplay.js');
 
     // PUBLIC.
     var indexPage = loadTemplate(template, 'public/index.htm');
@@ -236,7 +237,7 @@ debugger
     // LEVELS.
     var levelsREADME = loadTemplate(template, 'levels/README.md');
 
-    mkdir(outDir, function(){
+    mkdir(outDir, function() {
 
         mkdir(outDir + 'data');
 
@@ -249,7 +250,7 @@ debugger
 
             write(outDir + 'auth/auth.js', auth);
             write(outDir + 'auth/auth.settings.js', authSettings);
-            write(outDir + 'auth/auth.codes.js', authCodes);
+            write(outDir + 'auth/auth.codes.js.sample', authCodes);
             complete();
         });
 
@@ -292,6 +293,7 @@ debugger
                 typeLogic = substituteHeader(typeLogic);
                 typePhantom = substituteHeader(typePhantom);
 
+                write(outDir + 'game/client_types/autoplay.js', typeAutoplay);
                 write(outDir + 'game/client_types/player.js', typePlayer);
                 write(outDir + 'game/client_types/bot.js', typeBot);
                 write(outDir + 'game/client_types/logic.js', typeLogic);
