@@ -3,7 +3,7 @@
 var program = require('commander');
 var mkdirp = require('mkdirp');
 var os = require('os');
-var fs = require('fs');
+var fs = require('fs-extra');
 var path = require('path');
 var readline = require('readline');
 var sortedObject = require('sorted-object');
@@ -315,6 +315,10 @@ function createGameDir(template, gameName, outDir,
 
             write(outDir + 'public/game.htm', gamePage);
             write(outDir + 'public/end.htm', endPage);
+
+            // Copying favicon over.
+            fs.copySync(ngt.resolve('public/favicon.ico'),
+                        outDir + 'public/favicon.ico');
 
             mkdir(outDir + 'public/js', function() {
                 write(outDir + 'public/js/index.js', indexJS);

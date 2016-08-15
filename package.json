@@ -18,6 +18,7 @@
     "mkdirp": "0.5.0",
     "sorted-object": "1.0.0",
     "JSUS": "*",
+    "fs-extra": "*",
     "nodegame-game-template": "*"
   },
   "main": "bin/nodegame",
