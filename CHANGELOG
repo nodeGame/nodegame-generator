@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.1.0
+- Copying favicon.ico.
+
+## 1.0.0
+- Using nodegame-game-template.
+
 ## 0.2.0
 - Default values prompted
 - Exit if games dir does not exists
