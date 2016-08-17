@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.1.1
+- File requirements.js is copied as .sample, so that the default one from nodegame-game-template is used.
+
 ## 1.1.0
 - Copying favicon.ico.
 
