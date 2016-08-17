@@ -359,7 +359,7 @@ function createGameDir(template, gameName, outDir,
             requirementsSettings = substituteHeader(requirementsSettings);
             requirementsRoom = substituteHeader(requirementsRoom);
 
-            write(outDir + 'requirements/requirements.js', requirements);
+            write(outDir + 'requirements/requirements.js.sample', requirements);
             write(outDir + 'requirements/requirements.settings.js',
                   requirementsSettings);
             write(outDir + 'requirements/requirements.room.js.sample',
