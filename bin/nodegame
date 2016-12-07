@@ -116,7 +116,7 @@ function confirm(msg, callback) {
  */
 function createGameDir(template, gameName, outDir,
                        author, authorEmail, options) {
-
+debugger
     // Number of synchronous / asynchronous operations.
     var wait = 9;
     var verbose = !!options.verbose;
@@ -491,7 +491,7 @@ function templateExists(template) {
  */
 function createGame(options) {
     var author, authorEmail, destinationPath;
-    var template, appName, str;
+    var template, appName, str, opts;
 
     if (!options.game) {
         console.log('Error: game name missing');
@@ -505,7 +505,6 @@ function createGame(options) {
     else {
         template = 'dictator';
     }
-
 
     if (isAbsolute(options.game)) {
         destinationPath = options.game;
@@ -528,15 +527,22 @@ function createGame(options) {
     author = options.author || conf.author;
     authorEmail = options.email || conf.email;
 
+    // These are the options like -f.
+    opts = options.options || {};
+
     // Generate game. Check if it is empty.
     emptyDirectory(destinationPath, function(empty) {
-        if (empty || program.force) {
+
+        if (empty || opts.force) {
+            if (!empty) {
+                console.log('  --force option: overwriting existing folder.');
+            }
             createGameDir(template,
                           appName,
                           destinationPath,
                           author,
                           authorEmail,
-                          options.options || {});
+                          opts);
         }
         else {
             colorWrite('Warning!');
@@ -551,7 +557,7 @@ function createGame(options) {
                                   destinationPath,
                                   author,
                                   authorEmail,
-                                  options.options || {});
+                                  opts);
                 }
                 else {
                     console.error('aborting');

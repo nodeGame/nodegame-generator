@@ -37,9 +37,15 @@ module.exports = function(treatmentName, settings, stager, setup, gameRoom) {
     });
 
     stager.extendStep('game', {
+        matcher: {
+            roles: [ 'DICTATOR', 'OBSERVER' ],
+            match: 'rounddobin',
+            cycle: 'repeat_mirror',
+            // skipBye: false,
+            // sayPartner: false
+        },
         cb: function() {
             console.log('Game round: ' + node.player.stage.round);
-            doMatch();
         }
     });
 
@@ -64,13 +70,4 @@ module.exports = function(treatmentName, settings, stager, setup, gameRoom) {
 
     };
 
-    // Helper functions.
-
-    function doMatch() {
-        var players, len;
-        len = node.game.pl.size();
-        players = node.game.pl.shuffle().id.getAllKeys();
-        node.say('ROLE_DICTATOR', players[0], players[1]);
-        node.say('ROLE_OBSERVER', players[1]);
-    }
 };
