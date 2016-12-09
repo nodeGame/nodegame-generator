@@ -33,6 +33,9 @@ var conf = {
 
 var templates = [ 'dictator' ];
 
+// Flag if a command is passed at all.
+var cmdValue;
+
 // CLI
 
 before(program, 'outputHelp', function () {
@@ -52,6 +55,7 @@ before(program, 'outputHelp', function () {
 //         }
 //         console.log();
 //     });
+
 
 program
     .version(version)
@@ -684,3 +688,7 @@ function colorWrite(str) {
 
 // Parsing options.
 program.parse(process.argv);
+
+if (!program.args.length) {
+    console.log('Error: no command provided.');
+}
