@@ -294,6 +294,7 @@ debugger
             mkdir(outDir + 'game/client_types', function() {
                 typePlayer = substituteHeader(typePlayer);
                 typeBot = substituteHeader(typeBot);
+                typeAutoplay = substituteHeader(typeAutoplay);
                 typeLogic = substituteHeader(typeLogic);
                 typePhantom = substituteHeader(typePhantom);
 
