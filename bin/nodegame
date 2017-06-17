@@ -60,9 +60,20 @@ before(program, 'outputHelp', function () {
 program
     .version(version)
     .command('update-conf')
-    .description('Start nodegame configuration utility')
+    .description('Updates stored configuration (author, games dir, etc.)')
     .action(function(env, options){
         createConfFile(options);
+    });
+
+
+program
+    .version(version)
+    .command('show-conf')
+    .description('Shows current configuration')
+    .action(function(env, options){
+        loadConfFile(function() {
+            showConf();
+        });
     });
 
 program
@@ -116,31 +127,41 @@ function confirm(msg, callback) {
 /**
  * Create application at the given directory `path`.
  *
- * @param {String} outDir
+ * @TODO: update params
+ * @param {string} outDir
  */
 function createGameDir(template, gameName, outDir,
                        author, authorEmail, options) {
-debugger
+
     // Number of synchronous / asynchronous operations.
     var wait = 9;
     var verbose = !!options.verbose;
     var doGit = !!options.git;
     var d = new Date();
     var year = d.getFullYear();
-
+    var fullCopyright;
+    var nodegameCopyright;
     var fileName;
 
+    nodegameCopyright = 'Copyright(c) 2017 Stefano Balietti <ste@nodegame.org>';
+
+    // Make full copyright string.
+    fullCopyright = 'Copyright(c) ' + year;
+    if (author) fullCopyright += ' ' + author;
+    if (authorEmail) fullCopyright += ' <' + authorEmail + '>';
+
     // Fix trailing slash.
-    if (outDir.charAt(outDir.length) !== '/') {
-        outDir = outDir += '/';
-    }
+    if (outDir.charAt(outDir.length) !== '/') outDir = outDir += '/';   
 
     console.log();
 
     function substituteHeader(str) {
+        // Backward compatible.
         str = str.replace('{AUTHOR}', author);
         str = str.replace('{AUTHOR_EMAIL}', authorEmail);
         str = str.replace('{YEAR}', year);
+        // For all games.
+        str = str.replace(nodegameCopyright, fullCopyright);
         return str;
     }
 
@@ -624,15 +645,7 @@ function createConfFile(cb) {
 
                 if (answer) conf.email = answer;
 
-                console.log('');
-                colorWrite('New configuration: ');
-                console.log('');
-                console.log("    Games folder path: ", conf.gamesFolder);
-                console.log("          Author name: ", conf.author);
-                console.log("         Author email: ", conf.email);
-                console.log('');
-                console.log('To change run nodegame update-conf');
-                console.log('');
+                showConf(conf);
 
                 rl.close();
 
@@ -642,6 +655,18 @@ function createConfFile(cb) {
     });
 }
 
+function showConf(localConf) {
+    localConf = localConf || conf;
+    console.log('');
+    colorWrite('Configuration: ');
+    console.log('');
+    console.log("    Games folder path: ", conf.gamesFolder);
+    console.log("          Author name: ", conf.author);
+    console.log("         Author email: ", conf.email);
+    console.log('');
+    console.log('To change run nodegame update-conf');
+    console.log('');
+}
 
 function writeConfFile(conf, cb) {
     var str;
@@ -690,6 +715,7 @@ function colorWrite(str) {
 // Parsing options.
 program.parse(process.argv);
 
-if (!program.args.length) {
+if (!program.args.length &&
+    program.rawArgs[2] !== '--help' && program.rawArgs[2] !== '-h') {
     console.log('Error: no command provided.');
 }
