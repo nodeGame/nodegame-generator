@@ -19,7 +19,9 @@
     "sorted-object": "1.0.0",
     "JSUS": "*",
     "fs-extra": "*",
-    "nodegame-game-template": "*"
+    "nodegame-game-template": "*",
+    "dictator": "*",
+    "ultimatum-game": "*"
   },
   "main": "bin/nodegame",
   "preferGlobal": true,

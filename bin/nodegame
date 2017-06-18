@@ -18,20 +18,30 @@ var pkg = require('../package.json');
 var version = pkg.version;
 
 var root = path.resolve(__dirname, '..');
-var templatesDir = root + '/templates/';
+var templatesDir = root + '/node_modules/';
 var confFile = root + '/conf/generator.conf.json';
 
 // Re-assign process.exit because of commander
 process.exit = exit
 
-// Mock configuration. Should be overwritten.
+// Mock configuration. Will be overwritten.
 var conf = {
     author: 'author',
     email: 'email',
     gamesFolder: undefined
 };
 
-var templates = [ 'dictator' ];
+// Chosen template. Default dictator.
+var template = 'dictator';
+
+// Available templates.
+var templates = {
+    dictator: 'dictator',
+    ultimatum: 'ultimatum-game'
+};
+
+// Full copyright string. Will be overwritten.
+var fullCopyright;
 
 // Flag if a command is passed at all.
 var cmdValue;
@@ -43,18 +53,17 @@ before(program, 'outputHelp', function () {
 });
 
 
-// Not ready yet.
-// program
-//     .command('list-templates')
-//     .description('List all available game templates')
-//     .action(function() {
-//         var i, len;
-//         i = -1, len = templates.length;
-//         for ( ; ++i < len ; ) {
-//             console.log(templates[i]);
-//         }
-//         console.log();
-//     });
+program
+    .command('list-templates')
+    .description('List all available game templates')
+    .action(function() {
+        var t;
+        console.log();
+        for (t in templates ) {
+            console.log(' - ' + t);
+        }
+        console.log();
+    });
 
 
 program
@@ -80,8 +89,7 @@ program
     .command('create-game [game_name] [author] [author_email]')
     .description('Creates a new game in the games directory')
     .option('    --git', 'add .gitignore')
-    // Not yet ready.
-    // .option('-t, --template <template>', 'set the template for game')
+    .option('-t, --template <template>', 'set the template for game')
     .option('-f, --force', 'force on non-empty directory')
     .option('-v, --verbose', 'verbose output')
     .action(function(gameName, author, email, options) {
@@ -127,8 +135,7 @@ function confirm(msg, callback) {
 /**
  * Create application at the given directory `path`.
  *
- * @TODO: update params
- * @param {string} outDir
+ * @param {string} template
  */
 function createGameDir(template, gameName, outDir,
                        author, authorEmail, options) {
@@ -139,7 +146,6 @@ function createGameDir(template, gameName, outDir,
     var doGit = !!options.git;
     var d = new Date();
     var year = d.getFullYear();
-    var fullCopyright;
     var nodegameCopyright;
     var fileName;
 
@@ -151,7 +157,7 @@ function createGameDir(template, gameName, outDir,
     if (authorEmail) fullCopyright += ' <' + authorEmail + '>';
 
     // Fix trailing slash.
-    if (outDir.charAt(outDir.length) !== '/') outDir = outDir += '/';   
+    if (outDir.charAt(outDir.length) !== '/') outDir = outDir += '/';
 
     console.log();
 
@@ -184,6 +190,14 @@ function createGameDir(template, gameName, outDir,
         if (--wait) return;
         prompt = launchedFromCmd() ? '>' : '$';
         if (verbose) console.log();
+
+        console.log('   \x1b[36mcopyright string\x1b[0m:');
+        console.log('        ' + fullCopyright);
+        console.log();
+
+        console.log('   \x1b[36mtemplate\x1b[0m:');
+        console.log('        ' + template);
+        console.log();
 
         console.log('   \x1b[36mgame created\x1b[0m:');
         console.log('        ' + outDir);
@@ -268,6 +282,7 @@ function createGameDir(template, gameName, outDir,
 
         // AUTH.
         mkdir(outDir + 'auth', function() {
+            debugger
             auth = substituteHeader(auth);
             authSettings = substituteHeader(authSettings);
 
@@ -404,7 +419,7 @@ function createGameDir(template, gameName, outDir,
          var pkg = {
              name: gameName
              , version: '0.0.1'
-             , description: 'This is a nodeGame game'
+             , description: 'This is a nodeGame game based on ' + template
              , author: author + ' ' + '<' + authorEmail + '>'
              , license: "MIT/X11"
              , homepage: 'http://nodegame.org'
@@ -494,20 +509,20 @@ function isAbsolute(filePath) {
  */
 function loadTemplate(template, file) {
     var templatePath;
-    templatePath = ngt.resolve(file);
+    templatePath = path.join(templatesDir, templates[template], file);
+    if (!fs.existsSync(templatePath)) {
+        // Use the default one.
+        templatePath = ngt.resolve(file);
+    }
     return fs.readFileSync(templatePath, 'utf-8');
     // It was:
-    //return fs.readFileSync(
-    //    path.join(__dirname, '..', 'games', template, file), 'utf-8');
+    // var templatePath;
+    // templatePath = ngt.resolve(file);
+    // return fs.readFileSync(templatePath, 'utf-8');
 }
 
 function templateExists(template) {
-    var i, len;
-    i = -1, len = templates.length;
-    for ( ; ++i < len ; ) {
-        if (templates[i] === template) return true;
-    }
-    return false;
+    return !!templates[template];
 }
 
 /**
@@ -524,14 +539,6 @@ function createGame(options) {
         return;
     }
 
-    if (options.template && !templateExists(options.template)) {
-        console.log('Error: template not found: ' + options.template);
-        return;
-    }
-    else {
-        template = 'dictator';
-    }
-
     if (isAbsolute(options.game)) {
         destinationPath = options.game;
     }
@@ -545,7 +552,6 @@ function createGame(options) {
         }
         destinationPath = conf.gamesFolder + options.game;
     }
-
     // App name.
     appName = path.basename(path.resolve(destinationPath));
 
@@ -555,6 +561,14 @@ function createGame(options) {
 
     // These are the options like -f.
     opts = options.options || {};
+
+    if (opts.template) {
+        if (!templateExists(opts.template)) {
+            console.log('Error: template not found: ' + opts.template);
+            return;
+        }
+        template = opts.template;
+    }
 
     // Generate game. Check if it is empty.
     emptyDirectory(destinationPath, function(empty) {
