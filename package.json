@@ -25,9 +25,6 @@
   },
   "main": "bin/nodegame",
   "preferGlobal": true,
-  "bin": {
-    "express": "./bin/nodegame"
-  },
   "devDependencies": {
     "mocha": "~2.1.0"
   },
