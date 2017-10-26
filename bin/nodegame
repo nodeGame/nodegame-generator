@@ -18,7 +18,6 @@ var pkg = require('../package.json');
 var version = pkg.version;
 
 var root = path.resolve(__dirname, '..');
-var templatesDir = root + '/node_modules/';
 var confFile = root + '/conf/generator.conf.json';
 
 // Re-assign process.exit because of commander
@@ -33,9 +32,11 @@ var conf = {
 
 // Available templates.
 var templates = {
-    dictator: 'dictator',
-    ultimatum: 'ultimatum-game'
+    dictator: 'dictator'
 };
+
+// TODO: make templates actually loading from games_available.
+var templatesDir = 'TO_BE_DEFINED';
 
 // Chosen template. Default dictator.
 const DEFAULT_TEMPLATE = 'dictator';
@@ -53,21 +54,22 @@ before(program, 'outputHelp', function () {
     this.allowUnknownOption();
 });
 
-program
-    .command('list-templates')
-    .description('List all available game templates')
-    .action(function() {
-        var t, str;
-        console.log();
-        for (t in templates ) {
-            if (templates.hasOwnProperty(t)) {
-                str = ' - ' + t;
-                if (t === DEFAULT_TEMPLATE) str += '  **default**';
-                console.log(str);                
-            }
-        }
-        console.log();
-    });
+
+// program
+//     .command('list-templates')
+//     .description('List all available game templates')
+//     .action(function() {
+//         var t, str;
+//         console.log();
+//         for (t in templates ) {
+//             if (templates.hasOwnProperty(t)) {
+//                 str = ' - ' + t;
+//                 if (t === DEFAULT_TEMPLATE) str += '  **default**';
+//                 console.log(str);                
+//             }
+//         }
+//         console.log();
+//     });
 
 
 program
@@ -92,7 +94,7 @@ program
     .command('create-game [game_name] [author] [author_email]')
     .description('Creates a new game in the games directory')
     .option('    --git', 'add .gitignore')
-    .option('-t, --template <template>', 'set the template for game')
+    // .option('-t, --template <template>', 'set the template for game')
     .option('-f, --force', 'force on non-empty directory')
     .option('-v, --verbose', 'verbose output')
     .action(function(gameName, author, email, options) {
@@ -502,20 +504,31 @@ function launchedFromCmd() {
 }
 
 /**
- * Load template file.
+ * ## loadTemplate
+ *
+ * Load template file from the templates dir, or fallback to default one.
+ *
+ * @param {string} template The name of the template, e.g. ultimatum
+ * @param {string} file The path to the file inside the template
+ *
+ * @return {string} The loaded template
  */
 function loadTemplate(template, file) {
     var templatePath;
-    templatePath = path.join(templatesDir, templates[template], file);
+// Uncomment when loading templates from templatesDir works.
+//     templatePath = path.join(templatesDir, templates[template], file);
+//     if (!fs.existsSync(templatePath)) {
+//         // Try to use the default one.
+//         templatePath = ngt.resolve(file);
+//         if (!fs.existsSync(templatePath)) {
+//             throw new Error('Cannot find template file: ' + file);
+//         }
+//     }
+    templatePath = ngt.resolve(file);
     if (!fs.existsSync(templatePath)) {
-        // Use the default one.
-        templatePath = ngt.resolve(file);
+        throw new Error('Cannot find template file: ' + file);
     }
     return fs.readFileSync(templatePath, 'utf-8');
-    // It was:
-    // var templatePath;
-    // templatePath = ngt.resolve(file);
-    // return fs.readFileSync(templatePath, 'utf-8');
 }
 
 function templateExists(template) {
@@ -525,7 +538,6 @@ function templateExists(template) {
 /**
  * Create game.
  *
- * By default, uses the dictator-game template.
  */
 function createGame(options) {
     var author, authorEmail, destinationPath;
@@ -666,6 +678,27 @@ function createConfFile(cb) {
                 writeConfFile(conf, cb);
             });
         });
+    });
+}
+
+function loadTemplates() {
+    let dir = conf.gamesFolder;
+    
+    fs.readdirSync(dir).forEach(function(file, index){
+        let curPath = path.join(dir, file);
+        //  Recurse.
+        if (fs.lstatSync(curPath).isDirectory()) {
+            var name;
+            try {
+                let packageJson = require(path.join(curPath, 'package.json'));
+                name = packageJson.name;
+                if (name) templates[name] = curPath;            
+            }
+            catch(e) {
+                // Ignore errors for now.
+            }
+        }
+
     });
 }
 
