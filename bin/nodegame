@@ -31,14 +31,15 @@ var conf = {
     gamesFolder: undefined
 };
 
-// Chosen template. Default dictator.
-var template = 'dictator';
-
 // Available templates.
 var templates = {
     dictator: 'dictator',
     ultimatum: 'ultimatum-game'
 };
+
+// Chosen template. Default dictator.
+const DEFAULT_TEMPLATE = 'dictator';
+
 
 // Full copyright string. Will be overwritten.
 var fullCopyright;
@@ -52,15 +53,18 @@ before(program, 'outputHelp', function () {
     this.allowUnknownOption();
 });
 
-
 program
     .command('list-templates')
     .description('List all available game templates')
     .action(function() {
-        var t;
+        var t, str;
         console.log();
         for (t in templates ) {
-            console.log(' - ' + t);
+            if (templates.hasOwnProperty(t)) {
+                str = ' - ' + t;
+                if (t === DEFAULT_TEMPLATE) str += '  **default**';
+                console.log(str);                
+            }
         }
         console.log();
     });
@@ -73,7 +77,6 @@ program
     .action(function(env, options){
         createConfFile(options);
     });
-
 
 program
     .version(version)
@@ -203,12 +206,12 @@ function createGameDir(template, gameName, outDir,
         console.log('        ' + outDir);
         console.log();
 
+        tmp = '        channel/channel.secret.js.sample      -> ' +
+            'channel/channel.secret.js';
         console.log('   \x1b[36medit and rename\x1b[0m:');
         tmp = '        channel/channel.credentials.js.sample -> ' +
             'channel/channel.credentials.js';
         console.log(tmp);
-        tmp = '        channel/channel.secret.js.sample -> ' +
-            'channel/channel.secret.js';
         console.log(tmp);
         console.log();
 
@@ -282,7 +285,6 @@ function createGameDir(template, gameName, outDir,
 
         // AUTH.
         mkdir(outDir + 'auth', function() {
-            debugger
             auth = substituteHeader(auth);
             authSettings = substituteHeader(authSettings);
 
@@ -499,11 +501,6 @@ function launchedFromCmd() {
         && process.env._ === undefined;
 }
 
-function isAbsolute(filePath) {
-    if (launchedFromCmd(filePath)) return filePath.substring(1,3) === ':\\';
-    else return filePath.charAt(0) === '/';
-}
-
 /**
  * Load template file.
  */
@@ -539,7 +536,7 @@ function createGame(options) {
         return;
     }
 
-    if (isAbsolute(options.game)) {
+    if (path.isAbsolute(options.game)) {
         destinationPath = options.game;
     }
     else {
@@ -569,7 +566,9 @@ function createGame(options) {
         }
         template = opts.template;
     }
-
+    else {
+        template = DEFAULT_TEMPLATE;
+    }
     // Generate game. Check if it is empty.
     emptyDirectory(destinationPath, function(empty) {
 
@@ -622,13 +621,14 @@ function createConfFile(cb) {
     });
 
     console.log('');
-    str = 'Path to nodeGame games folder: ';
+    str = 'Path to nodeGame games_available folder: ';
     if (conf.gamesFolder) str += '[' + conf.gamesFolder + '] ';
 
     rl.question(str, function(answer) {
-
+        
         if (!answer) answer = conf.gamesFolder;
-
+        if (!path.isAbsolute(answer)) answer = path.join(process.cwd(), answer);
+        
         if (!fs.existsSync(answer)) {
             console.log('Error: directory not existing: ' + answer);
             process.exit();
