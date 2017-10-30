@@ -26,7 +26,8 @@
   "main": "bin/nodegame",
   "preferGlobal": true,
   "devDependencies": {
-    "mocha": "~2.1.0"
+    "mocha": "~2.1.0",
+    "should": "4.4.1"
   },
   "engines": {
     "node": ">= 4.0.0"
