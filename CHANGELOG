@@ -1,9 +1,8 @@
 # CHANGELOG
 
-## 4.0.0 (current)
+## 4.0.0
 - show-conf command.
 - Replace default nodeGame copyright string.
-- TODO: multiple templates.
 
 ## 1.1.2
 - Minor fix for autoplay template.
