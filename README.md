@@ -37,7 +37,7 @@ This generator can also be further configured with the following command line fl
 
 ## Kudos
 
-Based on a fork of [Express Generator](https://github.com/expressjs/generator).
+Originally based on a fork of [Express Generator](https://github.com/expressjs/generator).
 
 ## License
 
