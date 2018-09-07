@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 4.1.0
+- Auto-detect nodeGame installation folder
+- Enable games created in games/.
+- Small fixes.
+
 ## 4.0.0
 - show-conf command.
 - Replace default nodeGame copyright string.
