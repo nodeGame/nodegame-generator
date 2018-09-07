@@ -709,7 +709,7 @@ function createConfFile(cb) {
 
     console.log('');
     str = 'Path to nodeGame installation folder: ';
-    if (!conf.ngDir) {
+    if (!conf.ngDir || ! conf.ngGamesAvailDir || !conf.ngGamesEnabledDir) {
         let ngInfo = detectNodeGameInstallation();
         if (ngInfo) J.mixin(conf, ngInfo);
     }
