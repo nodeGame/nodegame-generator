@@ -1,25 +1,26 @@
 #!/usr/bin/env node
 
-var program = require('commander');
-var mkdirp = require('mkdirp');
-var os = require('os');
-var fs = require('fs-extra');
-var path = require('path');
-var readline = require('readline');
-var sortedObject = require('sorted-object');
+const program = require('commander');
+const mkdirp = require('mkdirp');
+const os = require('os');
+const fs = require('fs-extra');
+const path = require('path');
+const readline = require('readline');
+const sortedObject = require('sorted-object');
 
-var J = require('JSUS').JSUS;
-var ngt = require('nodegame-game-template');
+const J = require('JSUS').JSUS;
+const ngt = require('nodegame-game-template');
 
-var _exit = process.exit;
-var eol = os.EOL;
-var pkg = require('../package.json');
+const _exit = process.exit;
+const pkg = require('../package.json');
+const version = pkg.version;
 
-var version = pkg.version;
+const isWin = /^win/.test(process.platform);
 
-var root = path.resolve(__dirname, '..');
-var confFile = path.resolve(root, 'conf', 'generator.conf.json');
-var gamesFolder =
+// This file is "copied" and not linked in Windows,
+// therefore we need to be agnostic while loading the root path.
+const root = J.resolveModuleDir('nodegame-generator');
+const confFile = path.resolve(root, 'conf', 'generator.conf.json');
 
 // Re-assign process.exit because of commander
 process.exit = exit
@@ -28,7 +29,11 @@ process.exit = exit
 var conf = {
     author: 'author',
     email: 'email',
-    gamesFolder: undefined
+    ngDir: undefined,
+    // Properties below won't be saved in conf file.
+    ngVersion: undefined,
+    ngGamesAvailDir: undefined,
+    ngGamesEnabledDir: undefined,
 };
 
 // Available templates.
@@ -66,7 +71,7 @@ before(program, 'outputHelp', function () {
 //             if (templates.hasOwnProperty(t)) {
 //                 str = ' - ' + t;
 //                 if (t === DEFAULT_TEMPLATE) str += '  **default**';
-//                 console.log(str);                
+//                 console.log(str);
 //             }
 //         }
 //         console.log();
@@ -95,7 +100,7 @@ program
     .command('create-game [game_name] [author] [author_email]')
     .description('Creates a new game in the games directory')
     .option('    --git', 'add .gitignore')
-    // .option('-t, --template <template>', 'set the template for game')
+// .option('-t, --template <template>', 'set the template for game')
     .option('-f, --force', 'force on non-empty directory')
     .option('-v, --verbose', 'verbose output')
     .action(function(gameName, author, email, options) {
@@ -110,6 +115,78 @@ program
         });
 
     });
+
+/**
+ * ## detectNodeGameInstallation
+ *
+ * Try to detect a nodeGame normal installation
+ *
+ * First looks 2 and then 1 directories above.
+ *
+ * @return {object|boolean} An object with paths, or FALSE if detection failed.
+ */
+function detectNodeGameInstallation() {
+    let ngDir = path.resolve(root, '..', '..');
+    let ngPkg = {};
+    try {
+        ngPkg = require(path.resolve(ngDir, 'package.json'));
+    }
+    catch(e) {
+        ngDir = path.resolve(root, '..');
+    }
+    if (!ngPkg) {
+        try {
+            let ngPkg = require(path.resolve(ngDir, 'package.json'));
+        }
+        catch(e) {}
+    }
+    if (ngPkg.name === 'nodegame') {
+
+        console.log('NodeGame v' + ngPkg.version +
+                    ' installation detected in: ');
+        console.log(ngDir);
+        console.log('');
+
+        let gameDirs = checkGameDirs(ngDir);
+        if (!gameDirs) {
+            console.log('However, folders games and/or games_available ' +
+                        'could not be found');
+        }
+        else {
+            return {
+                ngVersion: ngPkg.version,
+                ngDir: ngDir + path.sep,
+                ngGamesAvailDir: gameDirs.ngGamesAvailDir,
+                ngGamesEnabledDir: gameDirs.ngGamesEnabledDir
+            };
+        }
+    }
+    return false;
+}
+
+
+/**
+ * ## checkGameDirs
+ *
+ * Verifies that games and games_available exist in the given folder
+ *
+ * @param {string} ngDir The path to the nodegame installation
+ *
+ * @return {object|boolean} An object with paths, or FALSE if detection failed.
+ */
+function checkGameDirs(ngDir) {
+    let ngGamesAvail = path.resolve(ngDir, 'games_available');
+    if (fs.existsSync(ngGamesAvail)) {
+        let ngGames = path.resolve(ngDir, 'games');
+        if (fs.existsSync(ngGames)) {
+            return {
+                ngGamesEnabledDir: ngGames + path.sep,
+                ngGamesAvailDir: ngGamesAvail + path.sep
+            };
+        }
+    }
+    return false;
+}
 
 /**
  * Install a before function; AOP.
@@ -155,7 +232,8 @@ function createGameDir(template, gameName, outDir,
     var nodegameCopyright;
     var fileName;
 
-    nodegameCopyright = 'Copyright(c) 2017 Stefano Balietti <ste@nodegame.org>';
+    nodegameCopyright = 'Copyright(c) ' + year +
+        ' Stefano Balietti <ste@nodegame.org>';
 
     // Make full copyright string.
     fullCopyright = 'Copyright(c) ' + year;
@@ -163,7 +241,7 @@ function createGameDir(template, gameName, outDir,
     if (authorEmail) fullCopyright += ' <' + authorEmail + '>';
 
     // Fix trailing slash.
-    if (outDir.charAt(outDir.length) !== '/') outDir = outDir += '/';
+    if (outDir.charAt(outDir.length) !== path.sep) outDir = outDir += path.sep;
 
     console.log();
 
@@ -194,41 +272,37 @@ function createGameDir(template, gameName, outDir,
     function complete() {
         var prompt, tmp;
         if (--wait) return;
+
+        // Enable by making a link in games/.
+        makeLink(outDir, path.resolve(conf.ngGamesEnabledDir, gameName));
+
         prompt = launchedFromCmd() ? '>' : '$';
         if (verbose) console.log();
 
-        console.log('   \x1b[36mcopyright string\x1b[0m:');
+        console.log('   \x1b[36mCopyright string\x1b[0m:');
         console.log('        ' + fullCopyright);
         console.log();
 
-        console.log('   \x1b[36mtemplate\x1b[0m:');
+        console.log('   \x1b[36mTemplate\x1b[0m:');
         console.log('        ' + template);
         console.log();
 
-        console.log('   \x1b[36mgame created\x1b[0m:');
-        console.log('        ' + outDir);
+        console.log('   \x1b[36mGame created\x1b[0m:');
+        console.log('        ' + outDir.substr(0, outDir.length-1));
         console.log();
 
-        tmp = '        channel/channel.secret.js.sample      -> ' +
-            'channel/channel.secret.js';
-        console.log('   \x1b[36medit and rename\x1b[0m:');
-        tmp = '        channel/channel.credentials.js.sample -> ' +
-            'channel/channel.credentials.js';
+        let channel = 'channel' + path.sep;
+        tmp = '        ' + channel + 'channel.secret.js.sample      -> ' +
+            channel + 'channel.secret.js';
+        console.log('   \x1b[36mEdit and rename\x1b[0m:');
         console.log(tmp);
+        tmp = '        ' + channel +
+            'channel.credentials.js.sample -> ' +
+            channel + 'channel.credentials.js';
         console.log(tmp);
         console.log();
 
         console.log();
-
-//        console.log('   run the app:');
-//
-//        if (launchedFromCmd()) {
-//          console.log('     %s SET DEBUG=%s:* & npm start', prompt, gameName);
-//        } else {
-//            console.log('     %s DEBUG=%s:* npm start', prompt, gameName);
-//        }
-//
-//        console.log();
     }
 
 
@@ -421,15 +495,15 @@ function createGameDir(template, gameName, outDir,
         });
 
         // Package.json
-         var pkg = {
-             name: gameName
-             , version: '0.0.1'
-             , description: 'This is a nodeGame game based on ' + template
-             , author: author + ' ' + '<' + authorEmail + '>'
-             , license: "MIT/X11"
-             , homepage: 'http://nodegame.org'
-//             , private: true
-         }
+        var pkg = {
+            name: gameName
+            , version: '0.0.1'
+            , description: 'This is a nodeGame game based on ' + template
+            , author: author + ' ' + '<' + authorEmail + '>'
+            , license: "MIT/X11"
+            , homepage: 'http://nodegame.org'
+            //             , private: true
+        }
 
 
         // sort dependencies like npm(1)
@@ -516,15 +590,15 @@ function launchedFromCmd() {
  */
 function loadTemplate(template, file) {
     var templatePath;
-// Uncomment when loading templates from templatesDir works.
-//     templatePath = path.join(templatesDir, templates[template], file);
-//     if (!fs.existsSync(templatePath)) {
-//         // Try to use the default one.
-//         templatePath = ngt.resolve(file);
-//         if (!fs.existsSync(templatePath)) {
-//             throw new Error('Cannot find template file: ' + file);
-//         }
-//     }
+    // Uncomment when loading templates from templatesDir works.
+    //     templatePath = path.join(templatesDir, templates[template], file);
+    //     if (!fs.existsSync(templatePath)) {
+    //         // Try to use the default one.
+    //         templatePath = ngt.resolve(file);
+    //         if (!fs.existsSync(templatePath)) {
+    //             throw new Error('Cannot find template file: ' + file);
+    //         }
+    //     }
     templatePath = ngt.resolve(file);
     if (!fs.existsSync(templatePath)) {
         throw new Error('Cannot find template file: ' + file);
@@ -554,13 +628,13 @@ function createGame(options) {
     }
     else {
         // Is there a default game folder?
-        if (!conf.gamesFolder) {
+        if (!conf.ngGamesAvailDir) {
             console.log('Error: no default game folder found. Please ' +
                         'provide an absolute path for the game, or ' +
                         'set the default game folder');
             return;
         }
-        destinationPath = conf.gamesFolder + options.game;
+        destinationPath = path.resolve(conf.ngGamesAvailDir, options.game);
     }
     // App name.
     appName = path.basename(path.resolve(destinationPath));
@@ -634,14 +708,26 @@ function createConfFile(cb) {
     });
 
     console.log('');
-    str = 'Path to nodeGame games_available folder: ';
-    if (conf.gamesFolder) str += '[' + conf.gamesFolder + '] ';
+    str = 'Path to nodeGame installation folder: ';
+    if (!conf.ngDir) {
+        let ngInfo = detectNodeGameInstallation();
+        if (ngInfo) J.mixin(conf, ngInfo);
+    }
+    if (conf.ngDir) str += '[' + conf.ngDir + '] ';
+
+    colorWrite('Input missing information, enter to keep default');
 
     rl.question(str, function(answer) {
-        
-        if (!answer) answer = conf.gamesFolder;
+
+        answer = answer || conf.ngDir;
+
+        if (!answer) {
+            console.log('Error: no directory provided and no default found.');
+            process.exit();
+            return;
+        }
         if (!path.isAbsolute(answer)) answer = path.join(process.cwd(), answer);
-        
+
         if (!fs.existsSync(answer)) {
             console.log('Error: directory not existing: ' + answer);
             process.exit();
@@ -654,10 +740,11 @@ function createConfFile(cb) {
             if (answer.substring(answer.length-2)!== '\\') answer += '\\';
         }
         else {
-            if (answer.charAt(answer.length-1) !== '/') answer += '/';
+            if (answer.charAt(answer.length-1) !== path.sep) answer += path.sep;
         }
 
-        conf.gamesFolder = answer;
+        // Set nodeGame dir.
+        conf.ngDir = answer;
 
         str = 'Default author name: ';
         if (conf.author) str += '[' + conf.author +'] ';
@@ -680,11 +767,16 @@ function createConfFile(cb) {
             });
         });
     });
+
+//     // Normalize to absolute if not already.
+//     if (!path.isAbsolute(conf.ngGamesAvailDir)) {
+//         conf.ngGamesAvailDir = path.normalize(root, confFile.ngGamesAvailDir);
+//     }
 }
 
 function loadTemplates() {
-    let dir = conf.gamesFolder;
-    
+    let dir = conf.ngGamesAvailDir;
+
     fs.readdirSync(dir).forEach(function(file, index){
         let curPath = path.join(dir, file);
         //  Recurse.
@@ -693,7 +785,7 @@ function loadTemplates() {
             try {
                 let packageJson = require(path.join(curPath, 'package.json'));
                 name = packageJson.name;
-                if (name) templates[name] = curPath;            
+                if (name) templates[name] = curPath;
             }
             catch(e) {
                 // Ignore errors for now.
@@ -708,7 +800,7 @@ function showConf(localConf) {
     console.log('');
     colorWrite('Configuration: ');
     console.log('');
-    console.log("    Games folder path: ", conf.gamesFolder);
+    console.log("    Games folder path: ", conf.ngGamesAvailDir);
     console.log("          Author name: ", conf.author);
     console.log("         Author email: ", conf.email);
     console.log('');
@@ -738,7 +830,7 @@ function loadConfFile(cb) {
     // Try to load configuration. If not found start utility to create it.
     try {
         conf = require(confFile);
-        if (!conf.author || !conf.email || !conf.gamesFolder) {
+        if (!conf.author || !conf.email || !conf.ngDir) {
             createConfFile(cb);
         }
         else {
@@ -748,16 +840,23 @@ function loadConfFile(cb) {
     catch(e) {
         console.log('');
         colorWrite('Warning!');
-        console.log('');
-        console.log('nodegame-generator conf file ' +
-                    'not found or not readable');
-        console.log('');
+        console.log('nodegame-generator conf file not found or not readable');
         createConfFile(cb);
     }
 }
 
 function colorWrite(str) {
     console.log('\x1b[36m' + str + '\x1b[0m');
+}
+
+function makeLink(from, to, type) {
+    if (isWin) {
+        if (type === 'file') fs.linkSync(from, to, 'file');
+        else fs.symlinkSync(from, to, 'junction');
+    }
+    else {
+        fs.symlinkSync(from, to);
+    }
 }
 
 // Parsing options.
