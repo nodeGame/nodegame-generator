@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 4.1.1
+- Improved parameter checking, display of help.
+- Fixed bug update-conf not loading the latest author and email parameters.
+
 ## 4.1.0
 - Auto-detect nodeGame installation folder
 - Enable games created in games/.
