@@ -77,20 +77,33 @@ before(program, 'outputHelp', function () {
 //         console.log();
 //     });
 
+program.version(version);
 
 program
-    .version(version)
     .command('update-conf')
     .description('Updates stored configuration (author, games dir, etc.)')
-    .action(function(env, options){
-        createConfFile(options);
+    .allowUnknownOption()
+    .action(function(options){
+
+        // This is a commander bug, get around it.
+        let c = options.parent.rawArgs[3];
+        if (c == '--help' || c == '--h') return
+
+        loadConfFile(function() {
+            // Nothing.
+        }, true);
     });
 
 program
-    .version(version)
     .command('show-conf')
     .description('Shows current configuration')
-    .action(function(env, options){
+    .allowUnknownOption()
+    .action(function(options) {
+
+        // This is a commander bug, get around it.
+        let c = options.parent.rawArgs[3];
+        if (c == '--help' || c == '--h') return
+
         loadConfFile(function() {
             showConf();
         });
@@ -99,11 +112,15 @@ program
 program
     .command('create-game [game_name] [author] [author_email]')
     .description('Creates a new game in the games directory')
-    .option('    --git', 'add .gitignore')
 // .option('-t, --template <template>', 'set the template for game')
     .option('-f, --force', 'force on non-empty directory')
     .option('-v, --verbose', 'verbose output')
+    .allowUnknownOption()
     .action(function(gameName, author, email, options) {
+
+        // This is a commander bug, get around it.
+        let c = options.parent.rawArgs[3];
+        if (c == '--help' || c == '--h') return;
 
         loadConfFile(function() {
             createGame({
@@ -226,7 +243,6 @@ function createGameDir(template, gameName, outDir,
     // Number of synchronous / asynchronous operations.
     var wait = 9;
     var verbose = !!options.verbose;
-    var doGit = !!options.git;
     var d = new Date();
     var year = d.getFullYear();
     var nodegameCopyright;
@@ -511,11 +527,8 @@ function createGameDir(template, gameName, outDir,
 
         // write files
         write(outDir + 'package.json', JSON.stringify(pkg, null, 4));
-
-        if (doGit) {
-            write(outDir + '.gitignore',
-                  fs.readFileSync(root + '/.gitignore', 'utf-8'));
-        }
+        write(outDir + '.gitignore',
+              fs.readFileSync(path.resolve(root, '.gitignore'), 'utf-8'));
 
         complete();
     });
@@ -826,11 +839,14 @@ function writeConfFile(conf, cb) {
     });
 }
 
-function loadConfFile(cb) {
+function loadConfFile(cb, force) {
     // Try to load configuration. If not found start utility to create it.
     try {
         conf = require(confFile);
-        if (!conf.author || !conf.email || !conf.ngDir) {
+        if (force || !conf.author || !conf.email || !conf.ngDir) {
+            if (!force) {
+                console.log('Missing or incomple conf. Trying to recover it.');
+            }
             createConfFile(cb);
         }
         else {
@@ -862,7 +878,20 @@ function makeLink(from, to, type) {
 // Parsing options.
 program.parse(process.argv);
 
-if (!program.args.length &&
-    program.rawArgs[2] !== '--help' && program.rawArgs[2] !== '-h') {
-    console.log('Error: no command provided.');
+let firstCommand = program.rawArgs[2]
+if (!program.args.length) {
+    if (firstCommand !== '--help' && firstCommand !== '-h' &&
+        firstCommand !== '--version' && firstCommand !== '-V'
+       ) {
+        console.log('Error: no command provided.');
+    }
+}
+else {
+
+    if (firstCommand !== 'create-game' &&
+        firstCommand !== 'show-conf' &&
+        firstCommand !== 'update-conf') {
+
+        console.log('Error: invalid command: ' + firstCommand);
+    }
 }
