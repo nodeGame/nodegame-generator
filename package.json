@@ -5,8 +5,9 @@
   "author": "Stefano Balietti <futur.dorko@gmail.com>",
   "keywords": [
     "nodegame",
-    "framework",
-    "web",
+    "boilerplate",
+    "template",
+    "cli",
     "game",
     "multiplayer",
     "realtime"
@@ -32,6 +33,6 @@
     "should": "4.4.1"
   },
   "engines": {
-    "node": ">= 4.0.0"
+    "node": ">= 6.0.0"
   }
 }
