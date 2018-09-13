@@ -22,6 +22,11 @@ const isWin = /^win/.test(process.platform);
 const root = J.resolveModuleDir('nodegame-generator');
 const confFile = path.resolve(root, 'conf', 'generator.conf.json');
 
+let rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
 // Re-assign process.exit because of commander
 process.exit = exit
 
@@ -220,17 +225,25 @@ function before(obj, method, fn) {
 /**
  * Prompt for confirmation on STDOUT/STDIN
  */
-function confirm(msg, callback) {
-    var rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-
-    rl.question(msg, function (input) {
-        rl.close();
-        callback(/^y|yes|ok|true$/i.test(input));
+function confirm(msg, cb) {
+    rl.question(msg, function(input) {
+        // rl.close();
+        cb(/^y|yes|ok|true$/i.test(input));
     });
 }
+
+function questionNoBlank(msg, cb) {
+    rl.question(msg, function(answer) {
+        // console.log('ANSWER WAS: ' + answer);
+        if ('undefined' === typeof answer || answer.trim() === '') {
+            questionNoBlank(msg, cb);
+            // Needed return otherwise it continues.
+            return;
+        }
+        cb(answer);
+    });
+}
+
 
 /**
  * Create application at the given directory `path`.
@@ -246,7 +259,7 @@ function createGameDir(template, gameName, outDir,
     var d = new Date();
     var year = d.getFullYear();
     var nodegameCopyright;
-    var fileName;
+    var fileName, str;
 
     nodegameCopyright = 'Copyright(c) ' + year +
         ' Stefano Balietti <ste@nodegame.org>';
@@ -259,6 +272,8 @@ function createGameDir(template, gameName, outDir,
     // Fix trailing slash.
     if (outDir.charAt(outDir.length) !== path.sep) outDir = outDir += path.sep;
 
+    console.log();
+    colorWrite('Creating Game');
     console.log();
 
     function substituteHeader(str) {
@@ -286,252 +301,356 @@ function createGameDir(template, gameName, outDir,
     }
 
     function complete() {
-        var prompt, tmp;
-        if (--wait) return;
+        if (--wait) return
+        let prompt, tmp;
 
         // Enable by making a link in games/.
         makeLink(outDir, path.resolve(conf.ngGamesEnabledDir, gameName));
 
+
         prompt = launchedFromCmd() ? '>' : '$';
         if (verbose) console.log();
 
-        console.log('   \x1b[36mCopyright string\x1b[0m:');
-        console.log('        ' + fullCopyright);
+        colorWrite('Copyright string');
+        console.log(' ' + fullCopyright);
         console.log();
 
-        console.log('   \x1b[36mTemplate\x1b[0m:');
-        console.log('        ' + template);
+        colorWrite('Template');
+        console.log(' ' + template);
         console.log();
 
-        console.log('   \x1b[36mGame created\x1b[0m:');
-        console.log('        ' + outDir.substr(0, outDir.length-1));
+        colorWrite('Game created');
+        console.log(' ' + outDir.substr(0, outDir.length-1));
         console.log();
 
-        let channel = 'channel' + path.sep;
-        tmp = '        ' + channel + 'channel.secret.js.sample      -> ' +
-            channel + 'channel.secret.js';
-        console.log('   \x1b[36mEdit and rename\x1b[0m:');
-        console.log(tmp);
-        tmp = '        ' + channel +
-            'channel.credentials.js.sample -> ' +
-            channel + 'channel.credentials.js';
-        console.log(tmp);
-        console.log();
+        // Not needed now.
+        // let channel = 'channel' + path.sep;
+        // tmp = '        ' + channel + 'channel.secret.js.sample      -> ' +
+        //     channel + 'channel.secret.js';
+        // console.log('   \x1b[36mEdit and rename\x1b[0m:');
+        // console.log(tmp);
+        // tmp = '        ' + channel +
+        //     'channel.credentials.js.sample -> ' +
+        //     channel + 'channel.credentials.js';
+        // console.log(tmp);
+        // console.log();
 
         console.log();
+        rl.close();
     }
 
+    str = ' - Type a secret passphrase or leave blank to generate a ' +
+        'random one\n' +
+        '   (Hint: it is used to sign auth tokens, it won\'t be asked again): ';
 
-    // Loading Templates.
+    rl.question(str, function(secret) {
 
-    // AUTH.
-    var auth = loadTemplate(template, 'auth/auth.js');
-    var authSettings = loadTemplate(template, 'auth/auth.settings.js');
-    var authCodes = loadTemplate(template, 'auth/auth.codes.js');
-
-    // CHANNEL.
-    var channelSettings = loadTemplate(template, 'channel/channel.settings.js');
-    var channelSecret = loadTemplate(template, 'channel/channel.secret.js');
-    var channelCredentials = loadTemplate(template,
-                                          'channel/channel.credentials.js');
-
-    // GAME.
-    var gameStages = loadTemplate(template, 'game/game.stages.js');
-    var gameSetup = loadTemplate(template, 'game/game.setup.js');
-    var gameSettings = loadTemplate(template, 'game/game.settings.js');
-
-    // GAME / client_types.
-    var typePlayer = loadTemplate(template, 'game/client_types/player.js');
-    var typeBot = loadTemplate(template, 'game/client_types/bot.js');
-    var typeLogic = loadTemplate(template, 'game/client_types/logic.js');
-    var typePhantom = loadTemplate(template, 'game/client_types/phantom.js');
-    var typeAutoplay = loadTemplate(template, 'game/client_types/autoplay.js');
-
-    // PUBLIC.
-    var indexPage = loadTemplate(template, 'public/index.htm');
-    var gamePage = loadTemplate(template, 'public/game.htm');
-    var instrPage = loadTemplate(template, 'public/instructions.htm');
-    var endPage = loadTemplate(template, 'public/end.htm');
-    var indexJS = loadTemplate(template, 'public/js/index.js');
-
-    // VIEWS.
-
-
-    // WAITROOM.
-    var waitroomSettings = loadTemplate(template,
-                                        'waitroom/waitroom.settings.js');
-    var waitroom = loadTemplate(template, 'waitroom/waitroom.js');
-
-    // REQUIREMENTS.
-    fileName = 'requirements/requirements.settings.js';
-    var requirementsSettings = loadTemplate(template, fileName);
-    fileName = 'requirements/requirements.room.js';
-    var requirementsRoom = loadTemplate(template, fileName);
-    var requirements = loadTemplate(template, 'requirements/requirements.js');
-
-    // LEVELS.
-    var levelsREADME = loadTemplate(template, 'levels/README.md');
-
-    mkdir(outDir, function() {
-
-        mkdir(outDir + 'data');
-
-        // AUTH.
-        mkdir(outDir + 'auth', function() {
-            auth = substituteHeader(auth);
-            authSettings = substituteHeader(authSettings);
-
-            auth = auth.replace('{NAME}', gameName);
-
-            write(outDir + 'auth/auth.js', auth);
-            write(outDir + 'auth/auth.settings.js', authSettings);
-            write(outDir + 'auth/auth.codes.js.sample', authCodes);
-            complete();
-        });
-
-        // CHANNEL.
-        mkdir(outDir + 'channel', function() {
-
-            // Settings.
-            channelSettings = substituteHeader(channelSettings);
-            channelSettings = channelSettings.replace(/{NAME}/g, gameName);
-            channelSettings = channelSettings.replace('{ADMIN}',
-                                                      gameName + '/admin');
-            write(outDir + 'channel/channel.settings.js', channelSettings);
-
-            // Credentials.
-            channelCredentials = substituteHeader(channelCredentials);
-            write(outDir + 'channel/channel.credentials.js.sample',
-                  channelCredentials);
-
-            // Secret.
-            channelSecret = substituteHeader(channelSecret);
-            write(outDir + 'channel/channel.secret.js.sample', channelSecret);
-
-            complete();
-        });
-
-        // GAME.
-        mkdir(outDir + 'game', function() {
-
-            gameStages = substituteHeader(gameStages);
-            gameSetup = substituteHeader(gameSetup);
-            gameSettings = substituteHeader(gameSettings);
-
-            write(outDir + 'game/game.stages.js', gameStages);
-            write(outDir + 'game/game.setup.js', gameSetup);
-            write(outDir + 'game/game.settings.js', gameSettings);
-
-            mkdir(outDir + 'game/client_types', function() {
-                typePlayer = substituteHeader(typePlayer);
-                typeBot = substituteHeader(typeBot);
-                typeAutoplay = substituteHeader(typeAutoplay);
-                typeLogic = substituteHeader(typeLogic);
-                typePhantom = substituteHeader(typePhantom);
-
-                write(outDir + 'game/client_types/autoplay.js', typeAutoplay);
-                write(outDir + 'game/client_types/player.js', typePlayer);
-                write(outDir + 'game/client_types/bot.js', typeBot);
-                write(outDir + 'game/client_types/logic.js', typeLogic);
-                write(outDir + 'game/client_types/phantom.js', typePhantom);
-                complete();
-            });
-        });
-
-        // PUBLIC.
-        mkdir(outDir + 'public', function() {
-            write(outDir + 'public/index.htm', indexPage);
-            indexJS = substituteHeader(indexJS);
-            // TODO: one command to replace all instances.
-            indexJS = indexJS.replace('{NAME}', gameName);
-            indexJS = indexJS.replace('{NAME}', gameName);
-
-            instrPage = instrPage.replace('{NAME}', gameName);
-            write(outDir + 'public/instructions.htm', instrPage);
-
-            write(outDir + 'public/game.htm', gamePage);
-            write(outDir + 'public/end.htm', endPage);
-
-            // Copying favicon over.
-            fs.copySync(ngt.resolve('public/favicon.ico'),
-                        outDir + 'public/favicon.ico');
-
-            mkdir(outDir + 'public/js', function() {
-                write(outDir + 'public/js/index.js', indexJS);
-
-                mkdir(outDir + 'public/css', function() {
-                    complete();
-                });
-            });
-        });
-
-        // VIEWS.
-        mkdir(outDir + 'views', function() {
-            mkdir(outDir + 'views/contexts', function() {
-                // Something.
-                mkdir(outDir + 'views/templates', function() {
-                    // Something.
-                    complete();
-                });
-            });
-        });
-
-        // WAITROOM.
-        mkdir(outDir + 'waitroom', function() {
-
-            waitroom = substituteHeader(waitroom);
-            waitroomSettings = substituteHeader(waitroomSettings);
-
-            write(outDir + 'waitroom/waitroom.js.sample', waitroom);
-            write(outDir + 'waitroom/waitroom.settings.js', waitroomSettings);
-
-            complete();
-        });
-
-        // REQUIREMENTS.
-        mkdir(outDir + 'requirements', function() {
-
-            requirements = substituteHeader(requirements);
-            requirementsSettings = substituteHeader(requirementsSettings);
-            requirementsRoom = substituteHeader(requirementsRoom);
-
-            write(outDir + 'requirements/requirements.js.sample', requirements);
-            write(outDir + 'requirements/requirements.settings.js',
-                  requirementsSettings);
-            write(outDir + 'requirements/requirements.room.js.sample',
-                  requirementsRoom);
-
-            complete();
-        });
-
-        // LEVELS.
-        mkdir(outDir + 'levels', function() {
-            write(outDir + 'levels/README.md', levelsREADME);
-            complete();
-        });
-
-        // Package.json
-        var pkg = {
-            name: gameName
-            , version: '0.0.1'
-            , description: 'This is a nodeGame game based on ' + template
-            , author: author + ' ' + '<' + authorEmail + '>'
-            , license: "MIT/X11"
-            , homepage: 'http://nodegame.org'
-            //             , private: true
+        if ('undefined' === typeof secret || secret.trim() === '') {
+            secret = J.randomString(15, 'aA!_1');
         }
 
+        console.log();
+        str = ' - Enter the ADMIN username: ';
+        questionNoBlank(str, function(admin) {
 
-        // sort dependencies like npm(1)
-        // pkg.dependencies = sortedObject(pkg.dependencies);
+            str = ' - Enter the ADMIN password: ';
+            questionNoBlank(str, function(pwd) {
 
-        // write files
-        write(outDir + 'package.json', JSON.stringify(pkg, null, 4));
-        write(outDir + '.gitignore',
-              fs.readFileSync(path.resolve(root, '.gitignore'), 'utf-8'));
+                str = ' - Confirm the ADMIN password: ';
+                rl.question(str, function(pwd2) {
 
-        complete();
+                    if (pwd !== pwd2) {
+                        console.log('Error: passwords do not match.');
+                        process.exit();
+                        return;
+                    }
+
+                    console.log();
+                    doIt(secret, admin, pwd);
+                });
+            });
+        });
+
     });
+
+    function doIt(secret, admin, pwd) {
+
+        // Loading Templates.
+        let filePath;
+        let t = template;
+
+        // AUTH.
+        filePath = path.join('auth', 'auth.js');
+        console.log('FP :' + filePath);
+        var auth = loadTemplate(t, filePath);
+        filePath = path.join('auth', 'auth.settings.js');
+        var authSettings = loadTemplate(t, filePath);
+        filePath = path.join('auth', 'auth.codes.js');
+        var authCodes = loadTemplate(t, filePath);
+
+        // CHANNEL.
+
+        filePath = path.join('channel', 'channel.settings.js');
+        var channelSettings = loadTemplate(t, filePath);
+        filePath = path.join('channel', 'channel.secret.js');
+        var channelSecret = loadTemplate(t, filePath);
+        filePath = path.join('channel', 'channel.credentials.js');
+        var channelCredentials = loadTemplate(t, filePath);
+
+        // GAME.
+
+        filePath = path.join('game', 'game.stages.js');
+        var gameStages = loadTemplate(t, filePath);
+        filePath = path.join('game', 'game.setup.js');
+        var gameSetup = loadTemplate(t, filePath);
+        filePath = path.join('game', 'game.settings.js');
+        var gameSettings = loadTemplate(t, filePath);
+
+        // GAME / client_types.
+
+        filePath = path.join('game', 'client_types', 'player.js');
+        var typePlayer = loadTemplate(t, filePath);
+        filePath = path.join('game', 'client_types', 'bot.js');
+        var typeBot = loadTemplate(t, filePath);
+        filePath = path.join('game', 'client_types', 'logic.js');
+        var typeLogic = loadTemplate(t, filePath);
+        filePath = path.join('game', 'client_types', 'phantom.js');
+        var typePhantom = loadTemplate(t, filePath);
+        filePath = path.join('game', 'client_types', 'autoplay.js');
+        var typeAutoplay = loadTemplate(t, filePath);
+
+        // PUBLIC.
+
+        filePath = path.join('public', 'index.htm');
+        var indexPage = loadTemplate(t, filePath);
+        filePath = path.join('public', 'game.htm');
+        var gamePage = loadTemplate(t, filePath);
+        filePath = path.join('public', 'instructions.htm');
+        var instrPage = loadTemplate(t, filePath);
+        filePath = path.join('public', 'end.htm');
+        var endPage = loadTemplate(t, filePath);
+        filePath = path.join('public', 'js', 'index.js');
+        var indexJS = loadTemplate(t, filePath);
+
+        // VIEWS.
+
+
+        // WAITROOM.
+
+        filePath = path.join('waitroom', 'waitroom.settings.js');
+        var waitroomSettings = loadTemplate(t, filePath);
+        filePath = path.join('waitroom', 'waitroom.js');
+        var waitroom = loadTemplate(t, 'waitroom/waitroom.js');
+
+        // REQUIREMENTS.
+
+        filePath = path.join('requirements', 'requirements.settings.js');
+        var requirementsSettings = loadTemplate(t, filePath);
+        filePath = path.join('requirements', 'requirements.room.js');
+        var requirementsRoom = loadTemplate(t, filePath);
+        filePath = path.join('requirements', 'requirements.js');
+        var requirements = loadTemplate(t, filePath);
+
+        // LEVELS.
+
+        filePath = path.join('levels', 'README.md');
+        var levelsREADME = loadTemplate(t, filePath);
+
+        mkdir(outDir, function() {
+
+            mkdir(path.resolve(outDir, 'data'));
+
+            // AUTH.
+            mkdir(path.resolve(outDir, 'auth'), function() {
+                auth = substituteHeader(auth);
+                authCodes = substituteHeader(authCodes);
+                authSettings = substituteHeader(authSettings);
+
+                auth = auth.replace('{NAME}', gameName);
+                let filePath = path.resolve(outDir, 'auth', 'auth.js');
+                write(filePath, auth);
+                filePath = path.resolve(outDir, 'auth', 'auth.settings.js');
+                write(filePath, authSettings);
+                filePath = path.resolve(outDir, 'auth', 'auth.codes.js.sample');
+                write(filePath, authCodes);
+                complete();
+            });
+
+            // CHANNEL.
+            mkdir(path.resolve(outDir, 'channel'), function() {
+
+                // Settings.
+                channelSettings = substituteHeader(channelSettings);
+                channelSettings = channelSettings.replace(/{NAME}/g, gameName);
+                channelSettings = channelSettings.replace('{ADMIN}',
+                                                          gameName + '/admin');
+                let filePath = path.resolve(outDir,
+                                            'channel', 'channel.settings.js');
+                write(filePath, channelSettings);
+
+                // Credentials.
+                channelCredentials = channelCredentials.replace(/{ADMIN}/, admin);
+                channelCredentials = channelCredentials.replace(/{PWD}/, pwd);
+                channelCredentials = substituteHeader(channelCredentials);
+                filePath = path.resolve(outDir,
+                                        'channel', 'channel.credentials.js');
+                write(filePath, channelCredentials);
+
+                // Secret.
+                channelSecret = substituteHeader(channelSecret);
+                channelSecret = channelSecret.replace(/{SECRET}/g, secret);
+                filePath = path.resolve(outDir, 'channel', 'channel.secret.js');
+                write(filePath, channelSecret);
+
+                complete();
+            });
+
+            // GAME.
+            mkdir(path.resolve(outDir, 'game'), function() {
+
+                gameStages = substituteHeader(gameStages);
+                gameSetup = substituteHeader(gameSetup);
+                gameSettings = substituteHeader(gameSettings);
+
+                let filePath = path.resolve(outDir, 'game', 'game.stages.js');
+                write(filePath, gameStages);
+                filePath = path.resolve(outDir, 'game', 'game.setup.js');
+                write(filePath, gameSetup);
+                filePath = path.resolve(outDir, 'game', 'game.settings.js');
+                write(filePath, gameSettings);
+
+                mkdir(path.resolve(outDir, 'game', 'client_types'), function() {
+                    typePlayer = substituteHeader(typePlayer);
+                    typeBot = substituteHeader(typeBot);
+                    typeAutoplay = substituteHeader(typeAutoplay);
+                    typeLogic = substituteHeader(typeLogic);
+                    typePhantom = substituteHeader(typePhantom);
+
+                    let ctPath = path.resolve(outDir, 'game', 'client_types');
+
+                    let filePath = path.join(ctPath, 'autoplay.js');
+                    write(filePath, typeAutoplay);
+                    filePath = path.join(ctPath, 'player.js');
+                    write(filePath, typePlayer);
+                    filePath = path.join(ctPath, 'bot.js');
+                    write(filePath, typeBot);
+                    filePath = path.join(ctPath, 'logic.js');
+                    write(filePath, typeLogic);
+                    filePath = path.join(ctPath, 'phantom.js');
+                    write(filePath, typePhantom);
+                    complete();
+                });
+            });
+
+            // PUBLIC.
+            mkdir(path.resolve(outDir, 'public'), function() {
+                indexJS = substituteHeader(indexJS);
+                instrPage = instrPage.replace('{NAME}', gameName);
+
+                let filePath = path.resolve(outDir, 'public', 'index.htm');
+                write(filePath, indexPage);
+                filePath = path.resolve(outDir, 'public', 'instructions.htm');
+                write(filePath, instrPage);
+                filePath = path.resolve(outDir, 'public', 'game.htm');
+                write(filePath, gamePage);
+                filePath = path.resolve(outDir, 'public', 'end.htm');
+                write(filePath, endPage);
+
+                // Copying favicon over.
+                fs.copySync(ngt.resolve(path.join('public', 'favicon.ico')),
+                            path.resolve(outDir, 'public', 'favicon.ico'));
+
+                mkdir(path.resolve(outDir, 'public', 'js'), function() {
+                    write(path.resolve(outDir, 'public', 'js', 'index.js'),
+                          indexJS);
+
+                    mkdir(path.resolve(outDir, 'public', 'css'), function() {
+                        complete();
+                    });
+                });
+            });
+
+            // VIEWS.
+            mkdir(path.resolve(outDir, 'views'), function() {
+                mkdir(path.resolve(outDir, 'views', 'contexts'), function() {
+                    // Something.
+                    mkdir(path.resolve(outDir, 'views', 'templates'),
+
+                          function() {
+                              // Something.
+                              complete();
+                          });
+                });
+            });
+
+            // WAITROOM.
+            mkdir(path.resolve(outDir, 'waitroom'), function() {
+
+                waitroom = substituteHeader(waitroom);
+                waitroomSettings = substituteHeader(waitroomSettings);
+
+                let filePath = path.resolve(outDir, 'waitroom',
+                                            'waitroom.js.sample');
+                write(filePath, waitroom);
+                filePath = path.resolve(outDir, 'waitroom',
+                                        'waitroom.settings.js');
+                write(filePath, waitroomSettings);
+
+                complete();
+            });
+
+            // REQUIREMENTS.
+            mkdir(path.resolve(outDir, 'requirements'), function() {
+
+                requirements = substituteHeader(requirements);
+                requirementsSettings = substituteHeader(requirementsSettings);
+                requirementsRoom = substituteHeader(requirementsRoom);
+
+                let filePath = path.resolve(outDir, 'requirements',
+                                            'requirements.js.sample');
+                write(filePath, requirements);
+                filePath = path.resolve(outDir, 'requirements',
+                                        'requirements.settings.js');
+                write(filePath, requirementsSettings);
+                filePath = path.resolve(outDir, 'requirements',
+                                        'requirements.room.js.sample');
+                write(filePath, requirementsRoom);
+
+                complete();
+            });
+
+            // LEVELS.
+            mkdir(path.resolve(outDir, 'levels'), function() {
+                write(path.resolve(outDir, 'levels', 'README.md'),
+                                   levelsREADME);
+                complete();
+            });
+
+            // Package.json
+            let pkg = {
+                name: gameName
+                , version: '0.0.1'
+                , description: 'This is a nodeGame game based on ' + template
+                , author: author + ' ' + '<' + authorEmail + '>'
+                , license: "MIT/X11"
+                , homepage: 'http://nodegame.org'
+                //             , private: true
+            };
+
+
+            // sort dependencies like npm(1)
+            // pkg.dependencies = sortedObject(pkg.dependencies);
+
+            // write files
+            
+            write(path.resolve(outDir, 'package.json'),
+                  JSON.stringify(pkg, null, 4));
+            write(path.resolve(outDir, '.gitignore'),
+                  fs.readFileSync(path.resolve(root, '.gitignore'), 'utf-8'));
+
+            complete();
+        });
+    }
 }
 
 /**
@@ -713,12 +832,7 @@ function createGame(options) {
  */
 function createConfFile(cb) {
 
-    var rl, str;
-
-    rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
+    var str;
 
     console.log('');
     str = 'Path to nodeGame installation folder: ';
