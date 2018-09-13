@@ -1,7 +1,7 @@
 {
   "name": "nodegame-generator",
   "description": "NodeGame' game generator",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "author": "Stefano Balietti <futur.dorko@gmail.com>",
   "keywords": [
     "nodegame",
@@ -21,6 +21,7 @@
     "fs-extra": "*",
     "mkdirp": "0.5.0",
     "nodegame-game-template": "*",
+    "prompt-password": "^1.2.0",
     "sorted-object": "1.0.0",
     "ultimatum-game": "*"
   },
