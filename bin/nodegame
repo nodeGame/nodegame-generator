@@ -273,8 +273,7 @@ function createGameDir(template, gameName, outDir,
     if (outDir.charAt(outDir.length) !== path.sep) outDir = outDir += path.sep;
 
     console.log();
-    colorWrite('Creating Game');
-    console.log();
+    colorWrite('Creating Game', true);
 
     function substituteHeader(str) {
         // Backward compatible.
@@ -311,29 +310,21 @@ function createGameDir(template, gameName, outDir,
         prompt = launchedFromCmd() ? '>' : '$';
         if (verbose) console.log();
 
-        colorWrite('Copyright string');
+        colorWrite('Copyright string', true);
         console.log(' ' + fullCopyright);
         console.log();
 
-        colorWrite('Template');
+        colorWrite('Template', true);
         console.log(' ' + template);
         console.log();
 
-        colorWrite('Game created');
+        colorWrite('Game created', true);
         console.log(' ' + outDir.substr(0, outDir.length-1));
         console.log();
 
-        // Not needed now.
-        // let channel = 'channel' + path.sep;
-        // tmp = '        ' + channel + 'channel.secret.js.sample      -> ' +
-        //     channel + 'channel.secret.js';
-        // console.log('   \x1b[36mEdit and rename\x1b[0m:');
-        // console.log(tmp);
-        // tmp = '        ' + channel +
-        //     'channel.credentials.js.sample -> ' +
-        //     channel + 'channel.credentials.js';
-        // console.log(tmp);
-        // console.log();
+        colorWrite('Admin Configuration stored in: ', true);
+        tmp = ' ' + 'channel' + path.sep + 'channel.credentials.js';
+        console.log(tmp);
 
         console.log();
         rl.close();
@@ -381,7 +372,6 @@ function createGameDir(template, gameName, outDir,
 
         // AUTH.
         filePath = path.join('auth', 'auth.js');
-        console.log('FP :' + filePath);
         var auth = loadTemplate(t, filePath);
         filePath = path.join('auth', 'auth.settings.js');
         var authSettings = loadTemplate(t, filePath);
@@ -803,8 +793,7 @@ function createGame(options) {
                           opts);
         }
         else {
-            colorWrite('Warning!');
-            console.log('');
+            colorWrite('Warning!', true);
             str = destinationPath + ' is not empty, do '
                 + 'you want to continue? [y/N] ';
             confirm(str, function(ok) {
@@ -925,8 +914,7 @@ function loadTemplates() {
 function showConf(localConf) {
     localConf = localConf || conf;
     console.log('');
-    colorWrite('Configuration: ');
-    console.log('');
+    colorWrite('Configuration: ', true);
     console.log("    Games folder path: ", conf.ngGamesAvailDir);
     console.log("          Author name: ", conf.author);
     console.log("         Author email: ", conf.email);
@@ -975,8 +963,9 @@ function loadConfFile(cb, force) {
     }
 }
 
-function colorWrite(str) {
+function colorWrite(str, br) {
     console.log('\x1b[36m' + str + '\x1b[0m');
+    if (br) console.log('');
 }
 
 function makeLink(from, to, type) {
