@@ -5,6 +5,9 @@ const mkdirp = require('mkdirp');
 const fs = require('fs-extra');
 const path = require('path');
 const readline = require('readline');
+const Writable = require('stream').Writable;
+const Prompt = require('prompt-password');
+
 // const sortedObject = require('sorted-object');
 
 const J = require('JSUS').JSUS;
@@ -20,10 +23,56 @@ const isWin = /^win/.test(process.platform);
 const root = J.resolveModuleDir('nodegame-generator');
 const confFile = path.resolve(root, 'conf', 'generator.conf.json');
 
+// let mutableStdout = new Writable({
+//     write: function(chunk, encoding, cb) {
+//         if (!this.muted) process.stdout.write(chunk, encoding);
+//         if (cb) cb();
+//     }
+// });
+// mutableStdout.muted = false;
+
 let rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
+    terminal: true
 });
+
+rl.on('SIGINT', function() {
+    rl.close()
+    console.log();
+    console.log();
+    console.log('canceled')
+});
+
+let prompt = new Prompt({
+    type: 'password',
+    message: 'Enter your password (hidden):',
+    name: 'pwd'
+});
+
+// rl.myprompt = '';
+// rl.willBeMuted = false;
+// rl.stdoutMuted = false;
+// rl._writeToOutput = function _writeToOutput(str) {
+//     console.log('length ', str, str.length);
+//     if (rl.stdoutMuted) {
+//         console.log(str);
+//         if (str.match(/^\u001b/)) {
+//             console.log('MATCHED');
+//             str = str.replace(/./g, rl.myprompt);
+//             str = rl.myprompt + str;
+//         }
+//         rl.output.write('*');
+//     }
+//     else {
+//         rl.output.write(str);
+//     }
+//     if (rl.willBeMuted) {
+//         rl.willBeMuted = false;
+//         rl.stdoutMuted = true;
+//     }
+// };
+
 
 // Mock configuration. Will be overwritten.
 var conf = {
@@ -49,12 +98,6 @@ const DEFAULT_TEMPLATE = 'dictator';
 
 // Full copyright string. Will be overwritten.
 var fullCopyright;
-
-// CLI
-
-before(program, 'outputHelp', function() {
-    this.allowUnknownOption();
-});
 
 
 // program
@@ -204,18 +247,6 @@ function checkGameDirs(ngDir) {
 }
 
 /**
- * Install a before function; AOP.
- */
-function before(obj, method, fn) {
-    var old = obj[method];
-
-    obj[method] = function() {
-        fn.call(this);
-        old.apply(this, arguments);
-    };
-}
-
-/**
  * Prompt for confirmation on STDOUT/STDIN
  */
 function confirm(msg, cb) {
@@ -323,7 +354,7 @@ function createGameDir(template, gameName, outDir,
     str = ' - Type a secret passphrase or leave blank to generate a ' +
         'random one\n' +
         '   (Hint: it is used to sign auth tokens, it won\'t be asked again): ';
-
+debugger
     rl.question(str, function(secret) {
 
         if ('undefined' === typeof secret || secret.trim() === '') {
@@ -334,11 +365,28 @@ function createGameDir(template, gameName, outDir,
         str = ' - Enter the ADMIN username: ';
         questionNoBlank(str, function(admin) {
 
-            str = ' - Enter the ADMIN password: ';
-            questionNoBlank(str, function(pwd) {
+            str = ' - Enter the ADMIN password (hidden): ';
 
-                str = ' - Confirm the ADMIN password: ';
+
+            prompt.run()
+                .then(function(answers) {
+                    console.log(answers)
+                });
+
+            return;
+            
+            rl.myprompt = str;
+            rl.willBeMuted = true;
+            questionNoBlank(str, function(pwd) {
+                str = ' - Confirm the ADMIN password (hidden): ';
+                rl.stdoutMuted = false;
+                rl.willBeMuted = true;
+                rl.myprompt = str;
+                console.log();
                 rl.question(str, function(pwd2) {
+                    rl.stdoutMuted = false;
+                    rl.willBeMuted = true;
+                    console.log();
 
                     if (pwd !== pwd2) {
                         console.log('Error: passwords do not match.');
@@ -349,7 +397,7 @@ function createGameDir(template, gameName, outDir,
                     console.log();
                     doIt(secret, admin, pwd);
                 });
-            });
+            }, true);
         });
 
     });
@@ -937,6 +985,7 @@ function makeLink(from, to, type) {
         fs.symlinkSync(from, to);
     }
 }
+
 
 // Parsing options.
 program.parse(process.argv);
