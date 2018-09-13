@@ -1,17 +1,15 @@
-#!/usr/bin/env node
+#!/usrng/bin/env node
 
 const program = require('commander');
 const mkdirp = require('mkdirp');
-const os = require('os');
 const fs = require('fs-extra');
 const path = require('path');
 const readline = require('readline');
-const sortedObject = require('sorted-object');
+// const sortedObject = require('sorted-object');
 
 const J = require('JSUS').JSUS;
 const ngt = require('nodegame-game-template');
 
-const _exit = process.exit;
 const pkg = require('../package.json');
 const version = pkg.version;
 
@@ -26,9 +24,6 @@ let rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
-
-// Re-assign process.exit because of commander
-process.exit = exit
 
 // Mock configuration. Will be overwritten.
 var conf = {
@@ -47,21 +42,17 @@ var templates = {
 };
 
 // TODO: make templates actually loading from games_available.
-var templatesDir = 'TO_BE_DEFINED';
+// var templatesDir = 'TO_BE_DEFINED';
 
 // Chosen template. Default dictator.
 const DEFAULT_TEMPLATE = 'dictator';
 
-
 // Full copyright string. Will be overwritten.
 var fullCopyright;
 
-// Flag if a command is passed at all.
-var cmdValue;
-
 // CLI
 
-before(program, 'outputHelp', function () {
+before(program, 'outputHelp', function() {
     this.allowUnknownOption();
 });
 
@@ -88,11 +79,11 @@ program
     .command('update-conf')
     .description('Updates stored configuration (author, games dir, etc.)')
     .allowUnknownOption()
-    .action(function(options){
+    .action(function(options) {
 
         // This is a commander bug, get around it.
         let c = options.parent.rawArgs[3];
-        if (c == '--help' || c == '--h') return
+        if (c === '--help' || c === '--h') return;
 
         loadConfFile(function() {
             // Nothing.
@@ -107,7 +98,7 @@ program
 
         // This is a commander bug, get around it.
         let c = options.parent.rawArgs[3];
-        if (c == '--help' || c == '--h') return
+        if (c === '--help' || c === '--h') return;
 
         loadConfFile(function() {
             showConf();
@@ -125,7 +116,7 @@ program
 
         // This is a commander bug, get around it.
         let c = options.parent.rawArgs[3];
-        if (c == '--help' || c == '--h') return;
+        if (c === '--help' || c === '--h') return;
 
         loadConfFile(function() {
             createGame({
@@ -158,9 +149,11 @@ function detectNodeGameInstallation() {
     }
     if (!ngPkg) {
         try {
-            let ngPkg = require(path.resolve(ngDir, 'package.json'));
+            ngPkg = require(path.resolve(ngDir, 'package.json'));
         }
-        catch(e) {}
+        catch(e) {
+            // Nothing.
+        }
     }
     if (ngPkg.name === 'nodegame') {
 
@@ -216,7 +209,7 @@ function checkGameDirs(ngDir) {
 function before(obj, method, fn) {
     var old = obj[method];
 
-    obj[method] = function () {
+    obj[method] = function() {
         fn.call(this);
         old.apply(this, arguments);
     };
@@ -259,7 +252,7 @@ function createGameDir(template, gameName, outDir,
     var d = new Date();
     var year = d.getFullYear();
     var nodegameCopyright;
-    var fileName, str;
+    var str;
 
     nodegameCopyright = 'Copyright(c) ' + year +
         ' Stefano Balietti <ste@nodegame.org>';
@@ -275,6 +268,11 @@ function createGameDir(template, gameName, outDir,
     console.log();
     colorWrite('Creating Game', true);
 
+    function write(filePath, str) {
+        fs.writeFileSync(filePath, str);
+        if (verbose) colorWrite('   create : ' + filePath);
+    }
+
     function substituteHeader(str) {
         // Backward compatible.
         str = str.replace('{AUTHOR}', author);
@@ -285,29 +283,21 @@ function createGameDir(template, gameName, outDir,
         return str;
     }
 
-
-    function write(filePath, str, mode) {
-        fs.writeFileSync(filePath, str, { mode: mode || 0666 });
-        if (verbose) console.log('   \x1b[36mcreate\x1b[0m : ' + filePath);
-    }
-
     function mkdir(dir, fn) {
-        mkdirp(dir, 0755, function(err){
+        mkdirp(dir, function(err) {
             if (err) throw err;
-            if (verbose) console.log('   \033[36mcreate\033[0m : ' + dir);
-            fn && fn();
+            if (verbose) colorWrite('   create : ' + dir);
+            if (fn) fn();
         });
     }
 
     function complete() {
-        if (--wait) return
-        let prompt, tmp;
+        if (--wait) return;
+        let tmp;
 
         // Enable by making a link in games/.
         makeLink(outDir, path.resolve(conf.ngGamesEnabledDir, gameName));
 
-
-        prompt = launchedFromCmd() ? '>' : '$';
         if (verbose) console.log();
 
         colorWrite('Copyright string', true);
@@ -319,7 +309,7 @@ function createGameDir(template, gameName, outDir,
         console.log();
 
         colorWrite('Game created', true);
-        console.log(' ' + outDir.substr(0, outDir.length-1));
+        console.log(' ' + outDir.substr(0, outDir.length - 1));
         console.log();
 
         colorWrite('Admin Configuration stored in: ', true);
@@ -618,13 +608,12 @@ function createGameDir(template, gameName, outDir,
 
             // Package.json
             let pkg = {
-                name: gameName
-                , version: '0.0.1'
-                , description: 'This is a nodeGame game based on ' + template
-                , author: author + ' ' + '<' + authorEmail + '>'
-                , license: "MIT/X11"
-                , homepage: 'http://nodegame.org'
-                //             , private: true
+                name: gameName,
+                version: '0.0.1',
+                description: 'This is a nodeGame game based on ' + template,
+                author: author + ' ' + '<' + authorEmail + '>',
+                license: 'MIT/X11',
+                homepage: 'http://nodegame.org'
             };
 
 
@@ -632,7 +621,7 @@ function createGameDir(template, gameName, outDir,
             // pkg.dependencies = sortedObject(pkg.dependencies);
 
             // write files
-            
+
             write(path.resolve(outDir, 'package.json'),
                   JSON.stringify(pkg, null, 4));
             write(path.resolve(outDir, '.gitignore'),
@@ -643,16 +632,14 @@ function createGameDir(template, gameName, outDir,
     }
 }
 
-/**
- * Copies a file to a destination
- *
- *
- *
- */
-function copyTemplate(from, to) {
-    from = path.join(__dirname, '..', 'templates', from);
-    write(to, fs.readFileSync(from, 'utf-8'));
-}
+// /**
+//  * Copies a file to a destination
+//  *
+//  */
+// function copyTemplate(from, to) {
+//     from = path.join(__dirname, '..', 'templates', from);
+//     write(to, fs.readFileSync(from, 'utf-8'));
+// }
 
 /**
  * Check if the given directory `path` is empty.
@@ -661,43 +648,17 @@ function copyTemplate(from, to) {
  * @param {Function} fn
  */
 function emptyDirectory(dir, fn) {
-    fs.readdir(dir, function(err, files){
-        if (err && 'ENOENT' != err.code) throw err;
+    fs.readdir(dir, function(err, files) {
+        if (err && 'ENOENT' !== err.code) throw err;
         fn(!files || !files.length);
     });
-}
-
-/**
- * Graceful exit for async STDIO
- */
-function exit(code) {
-    // flush output for Node.js Windows pipe bug
-    // https://github.com/joyent/node/issues/6247 is just one bug example
-    // https://github.com/visionmedia/mocha/issues/333 has a good discussion
-    function done() {
-        if (!(draining--)) _exit(code);
-    }
-
-    var draining = 0;
-    var streams = [process.stdout, process.stderr];
-
-    exit.exited = true;
-
-    streams.forEach(function(stream){
-        // submit empty write request and wait for completion
-        draining += 1;
-        stream.write('', done);
-    });
-
-    done();
 }
 
 /**
  * Determine if launched from cmd.exe
  */
 function launchedFromCmd() {
-    return process.platform === 'win32'
-        && process.env._ === undefined;
+    return process.platform === 'win32' && process.env._ === undefined;
 }
 
 /**
@@ -794,8 +755,8 @@ function createGame(options) {
         }
         else {
             colorWrite('Warning!', true);
-            str = destinationPath + ' is not empty, do '
-                + 'you want to continue? [y/N] ';
+            str = destinationPath + ' is not empty, do you want to ' +
+                'continue? [y/N] ';
             confirm(str, function(ok) {
                 if (ok) {
                     process.stdin.destroy();
@@ -808,7 +769,7 @@ function createGame(options) {
                 }
                 else {
                     console.error('aborting');
-                    exit(1);
+                    process.exit(1);
                 }
             });
         }
@@ -853,24 +814,28 @@ function createConfFile(cb) {
 
         // Add trailing slashes.
         if (launchedFromCmd()) {
-            if (answer.substring(answer.length-2)!== '\\') answer += '\\';
+            if (answer.substring(answer.length - 2) !== '\\') {
+                answer += '\\';
+            }
         }
         else {
-            if (answer.charAt(answer.length-1) !== path.sep) answer += path.sep;
+            if (answer.charAt(answer.length - 1) !== path.sep) {
+                answer += path.sep;
+            }
         }
 
         // Set nodeGame dir.
         conf.ngDir = answer;
 
         str = 'Default author name: ';
-        if (conf.author) str += '[' + conf.author +'] ';
+        if (conf.author) str += '[' + conf.author + '] ';
 
         rl.question(str, function(answer) {
 
             if (answer) conf.author = answer;
 
             str = 'Default author email: ';
-            if (conf.email) str += '[' + conf.email +'] ';
+            if (conf.email) str += '[' + conf.email + '] ';
             rl.question(str, function(answer) {
 
                 if (answer) conf.email = answer;
@@ -883,41 +848,36 @@ function createConfFile(cb) {
             });
         });
     });
-
-//     // Normalize to absolute if not already.
-//     if (!path.isAbsolute(conf.ngGamesAvailDir)) {
-//         conf.ngGamesAvailDir = path.normalize(root, confFile.ngGamesAvailDir);
-//     }
 }
 
-function loadTemplates() {
-    let dir = conf.ngGamesAvailDir;
-
-    fs.readdirSync(dir).forEach(function(file, index){
-        let curPath = path.join(dir, file);
-        //  Recurse.
-        if (fs.lstatSync(curPath).isDirectory()) {
-            var name;
-            try {
-                let packageJson = require(path.join(curPath, 'package.json'));
-                name = packageJson.name;
-                if (name) templates[name] = curPath;
-            }
-            catch(e) {
-                // Ignore errors for now.
-            }
-        }
-
-    });
-}
+// function loadTemplates() {
+//     let dir = conf.ngGamesAvailDir;
+//
+//     fs.readdirSync(dir).forEach(function(file, index) {
+//         let curPath = path.join(dir, file);
+//         //  Recurse.
+//         if (fs.lstatSync(curPath).isDirectory()) {
+//             var name;
+//             try {
+//                let packageJson = require(path.join(curPath, 'package.json'));
+//                 name = packageJson.name;
+//                 if (name) templates[name] = curPath;
+//             }
+//             catch(e) {
+//                 // Ignore errors for now.
+//             }
+//         }
+//
+//     });
+// }
 
 function showConf(localConf) {
     localConf = localConf || conf;
     console.log('');
     colorWrite('Configuration: ', true);
-    console.log("    Games folder path: ", conf.ngGamesAvailDir);
-    console.log("          Author name: ", conf.author);
-    console.log("         Author email: ", conf.email);
+    console.log('    Games folder path: ', localConf.ngGamesAvailDir);
+    console.log('          Author name: ', localConf.author);
+    console.log('         Author email: ', localConf.email);
     console.log('');
     console.log('To change run nodegame update-conf');
     console.log('');
@@ -981,7 +941,7 @@ function makeLink(from, to, type) {
 // Parsing options.
 program.parse(process.argv);
 
-let firstCommand = program.rawArgs[2]
+let firstCommand = program.rawArgs[2];
 if (!program.args.length) {
     if (firstCommand !== '--help' && firstCommand !== '-h' &&
         firstCommand !== '--version' && firstCommand !== '-V'

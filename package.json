@@ -14,18 +14,20 @@
   "repository": "nodeGame/generator",
   "license": "MIT",
   "dependencies": {
-    "commander": "2.6.0",
-    "mkdirp": "0.5.0",
-    "sorted-object": "1.0.0",
     "JSUS": "*",
-    "fs-extra": "*",
-    "nodegame-game-template": "*",
+    "commander": "2.6.0",
     "dictator": "*",
+    "fs-extra": "*",
+    "mkdirp": "0.5.0",
+    "nodegame-game-template": "*",
+    "sorted-object": "1.0.0",
     "ultimatum-game": "*"
   },
   "main": "bin/nodegame",
   "preferGlobal": true,
   "devDependencies": {
+    "eslint": "^5.5.0",
+    "jshint": "^2.9.6",
     "mocha": "~2.1.0",
     "should": "4.4.1"
   },
