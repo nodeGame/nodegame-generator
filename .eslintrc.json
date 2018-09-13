@@ -31,9 +31,9 @@
         "semi-spacing": [2, {"before": false, "after": true}],
         "key-spacing": [2, {"beforeColon": false, "afterColon": true}],
         "keyword-spacing": [2, {"overrides": {
-            "if": {"after": false},
-            "for": {"after": false},
-            "while": {"after": false},
+            "if": {"after": true},
+            "for": {"after": true},
+            "while": {"after": true},
             "switch": {"after": false},
             "catch": {"after": false}
         }}],
