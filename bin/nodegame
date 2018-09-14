@@ -269,7 +269,7 @@ function confirm(msg, cb) {
 
 function questionNoBlank(msg, cb) {
     rl.question(msg, function(answer) {
-        console.log('ANSWER WAS: ' + answer);
+        // console.log('ANSWER WAS: ' + answer);
         if ('undefined' === typeof answer || answer.trim() === '') {
             questionNoBlank(msg, cb);
             // Needed return otherwise it continues.
