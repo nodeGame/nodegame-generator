@@ -343,20 +343,26 @@ function createGameDir(template, gameName, outDir,
 
         if (verbose) console.log();
 
-        colorWrite('Copyright string', true);
-        console.log(' ' + fullCopyright);
+        colorWrite('Well done! Game created!', true);
+
+        colorWrite('Copyright string:');
+        console.log('   ' + fullCopyright);
         console.log();
 
-        colorWrite('Template', true);
-        console.log(' ' + template);
+        colorWrite('Template:');
+        console.log('   ' + template);
         console.log();
 
-        colorWrite('Game created', true);
-        console.log(' ' + outDir.substr(0, outDir.length - 1));
+        colorWrite('License:');
+        console.log('   MIT');
         console.log();
 
-        colorWrite('Admin configuration stored in: ', true);
-        tmp = ' ' + 'channel' + path.sep + 'channel.credentials.js';
+        colorWrite('Game directory:');
+        console.log('   ' + outDir.substr(0, outDir.length - 1));
+        console.log();
+
+        colorWrite('Admin configuration stored in:');
+        tmp = '   ' + 'channel' + path.sep + 'channel.credentials.js';
         console.log(tmp);
 
         console.log();
