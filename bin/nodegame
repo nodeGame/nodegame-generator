@@ -19,12 +19,12 @@ const isWin = /^win/.test(process.platform);
 const root = J.resolveModuleDir('nodegame-generator');
 const confFile = path.resolve(root, 'conf', 'generator.conf.json');
 
+// Setup readline.
 let rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
     terminal: true
 });
-
 rl.on('SIGINT', function() {
     rl.close();
     console.log();
@@ -39,7 +39,6 @@ var stdoutConf = {
     origPrompt: ''
 };
 unmute();
-
 
 function muteNext() {
     if (stdoutConf.muted) unmute();
@@ -57,7 +56,6 @@ function mute() {
     stdoutConf.willBeMuted = false;
     stdoutConf.muted = true;
 }
-
 
 rl._writeToOutput = function _writeToOutput(str) {
     // console.log('INPUT ', str, str.length);
@@ -90,13 +88,13 @@ rl._writeToOutput = function _writeToOutput(str) {
     }
 };
 
+// Game-creation configuration.
 
-// Mock configuration. Will be overwritten.
+// Will be overwritten.
 var conf = {
     author: 'author',
     email: 'email',
     ngDir: undefined,
-    // Properties below won't be saved in conf file.
     ngVersion: undefined,
     ngGamesAvailDir: undefined,
     ngGamesEnabledDir: undefined,
@@ -112,10 +110,6 @@ var templates = {
 
 // Chosen template. Default dictator.
 const DEFAULT_TEMPLATE = 'dictator';
-
-// Full copyright string. Will be overwritten.
-var fullCopyright;
-
 
 // program
 //     .command('list-templates')
@@ -299,7 +293,8 @@ function createGameDir(template, gameName, outDir,
     var d = new Date();
     var year = d.getFullYear();
     var nodegameCopyright;
-    var str;
+    var str, fullCopyright;
+
 
     nodegameCopyright = 'Copyright(c) ' + year +
         ' Stefano Balietti <ste@nodegame.org>';
