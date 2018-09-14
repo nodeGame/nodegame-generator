@@ -3,6 +3,7 @@
 ## 4.2.0
 - Auto generate secret and credentials files.
 - Eslinted nodegame.
+- Added README and LICENSE
 
 ## 4.1.1
 - Improved parameter checking, display of help.
