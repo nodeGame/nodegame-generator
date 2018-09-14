@@ -489,6 +489,10 @@ function createGameDir(template, gameName, outDir,
         filePath = path.join('levels', 'README.md');
         var levelsREADME = loadTemplate(t, filePath);
 
+        // README.
+
+        var rootREADME = loadTemplate(t, 'README.template.md');
+        
         mkdir(outDir, function() {
 
             mkdir(path.resolve(outDir, 'data'));
@@ -659,6 +663,14 @@ function createGameDir(template, gameName, outDir,
                 complete();
             });
 
+            // README.
+
+            rootREADME = rootREADME.replace(/{NAME}/g, gameName);
+            rootREADME = rootREADME.replace(/{DESCR}/g, descr);
+            rootREADME = rootREADME.replace(/{AUTHOR}/g, author);
+            rootREADME = rootREADME.replace(/{EMAIL}/g, authorEmail);
+            write(path.resolve(outDir, 'README.md'), rootREADME);
+                
             // Package.json.
             let pkg = {
                 name: gameName,
