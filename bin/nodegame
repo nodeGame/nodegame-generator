@@ -5,10 +5,6 @@ const mkdirp = require('mkdirp');
 const fs = require('fs-extra');
 const path = require('path');
 const readline = require('readline');
-const Writable = require('stream').Writable;
-const Prompt = require('prompt-password');
-
-// const sortedObject = require('sorted-object');
 
 const J = require('JSUS').JSUS;
 const ngt = require('nodegame-game-template');
@@ -23,14 +19,6 @@ const isWin = /^win/.test(process.platform);
 const root = J.resolveModuleDir('nodegame-generator');
 const confFile = path.resolve(root, 'conf', 'generator.conf.json');
 
-// let mutableStdout = new Writable({
-//     write: function(chunk, encoding, cb) {
-//         if (!this.muted) process.stdout.write(chunk, encoding);
-//         if (cb) cb();
-//     }
-// });
-// mutableStdout.muted = false;
-
 let rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -38,40 +26,69 @@ let rl = readline.createInterface({
 });
 
 rl.on('SIGINT', function() {
-    rl.close()
+    rl.close();
     console.log();
     console.log();
-    console.log('canceled')
+    console.log('canceled');
 });
 
-let prompt = new Prompt({
-    type: 'password',
-    message: 'Enter your password (hidden):',
-    name: 'pwd'
-});
+var stdoutConf = {
+    willBeMuted: false,
+    muted: false,
+    lastPrompt: '',
+    origPrompt: ''
+};
+unmute();
 
-// rl.myprompt = '';
-// rl.willBeMuted = false;
-// rl.stdoutMuted = false;
-// rl._writeToOutput = function _writeToOutput(str) {
-//     console.log('length ', str, str.length);
-//     if (rl.stdoutMuted) {
-//         console.log(str);
-//         if (str.match(/^\u001b/)) {
-//             console.log('MATCHED');
-//             str = str.replace(/./g, rl.myprompt);
-//             str = rl.myprompt + str;
-//         }
-//         rl.output.write('*');
-//     }
-//     else {
-//         rl.output.write(str);
-//     }
-//     if (rl.willBeMuted) {
-//         rl.willBeMuted = false;
-//         rl.stdoutMuted = true;
-//     }
-// };
+
+function muteNext() {
+    if (stdoutConf.muted) unmute();
+    stdoutConf.willBeMuted = true;
+}
+
+function unmute() {
+    stdoutConf.willBeMuted = false;
+    stdoutConf.muted = false;
+    stdoutConf.lastPrompt = '';
+    stdoutConf.origPrompt = '';
+}
+
+function mute() {
+    stdoutConf.willBeMuted = false;
+    stdoutConf.muted = true;
+}
+
+
+rl._writeToOutput = function _writeToOutput(str) {
+    // console.log('INPUT ', str, str.length);
+    if (stdoutConf.muted) {
+        if (str.length > 2) {
+            // console.log('LEN : ', str.length);
+            // console.log('1');
+            let len = stdoutConf.lastPrompt.length;
+            let lenOrig = stdoutConf.origPrompt.length;
+            str = stdoutConf.lastPrompt.substr(0, Math.max(lenOrig, len - 1));
+            stdoutConf.lastPrompt = str;
+            rl.output.write(str);
+        }
+        else if (str.length === 2) {
+            rl.output.write(str);
+        }
+        else {
+            // console.log('2');
+            rl.output.write('*');
+            stdoutConf.lastPrompt += '*';
+        }
+    }
+    else {
+        // console.log('3');
+        rl.output.write(str);
+    }
+    if (stdoutConf.willBeMuted) {
+        stdoutConf.lastPrompt = stdoutConf.origPrompt = str;
+        mute();
+    }
+};
 
 
 // Mock configuration. Will be overwritten.
@@ -258,7 +275,7 @@ function confirm(msg, cb) {
 
 function questionNoBlank(msg, cb) {
     rl.question(msg, function(answer) {
-        // console.log('ANSWER WAS: ' + answer);
+        console.log('ANSWER WAS: ' + answer);
         if ('undefined' === typeof answer || answer.trim() === '') {
             questionNoBlank(msg, cb);
             // Needed return otherwise it continues.
@@ -267,7 +284,6 @@ function questionNoBlank(msg, cb) {
         cb(answer);
     });
 }
-
 
 /**
  * Create application at the given directory `path`.
@@ -326,8 +342,9 @@ function createGameDir(template, gameName, outDir,
         if (--wait) return;
         let tmp;
 
-        // Enable by making a link in games/.
-        makeLink(outDir, path.resolve(conf.ngGamesEnabledDir, gameName));
+        // Enable by making a link in games/, if not there already.
+        tmp = path.resolve(conf.ngGamesEnabledDir, gameName);
+        if (!fs.existsSync(tmp)) makeLink(outDir, tmp);
 
         if (verbose) console.log();
 
@@ -343,7 +360,7 @@ function createGameDir(template, gameName, outDir,
         console.log(' ' + outDir.substr(0, outDir.length - 1));
         console.log();
 
-        colorWrite('Admin Configuration stored in: ', true);
+        colorWrite('Admin configuration stored in: ', true);
         tmp = ' ' + 'channel' + path.sep + 'channel.credentials.js';
         console.log(tmp);
 
@@ -354,38 +371,24 @@ function createGameDir(template, gameName, outDir,
     str = ' - Type a secret passphrase or leave blank to generate a ' +
         'random one\n' +
         '   (Hint: it is used to sign auth tokens, it won\'t be asked again): ';
-debugger
+
     rl.question(str, function(secret) {
 
         if ('undefined' === typeof secret || secret.trim() === '') {
-            secret = J.randomString(15, 'aA!_1');
+            secret = J.randomString(15, 'aA_1');
         }
 
         console.log();
         str = ' - Enter the ADMIN username: ';
         questionNoBlank(str, function(admin) {
-
             str = ' - Enter the ADMIN password (hidden): ';
-
-
-            prompt.run()
-                .then(function(answers) {
-                    console.log(answers)
-                });
-
-            return;
-            
-            rl.myprompt = str;
-            rl.willBeMuted = true;
+            muteNext();
             questionNoBlank(str, function(pwd) {
+                muteNext();
                 str = ' - Confirm the ADMIN password (hidden): ';
-                rl.stdoutMuted = false;
-                rl.willBeMuted = true;
-                rl.myprompt = str;
                 console.log();
                 rl.question(str, function(pwd2) {
-                    rl.stdoutMuted = false;
-                    rl.willBeMuted = true;
+                    mute();
                     console.log();
 
                     if (pwd !== pwd2) {
@@ -398,7 +401,7 @@ debugger
                     doIt(secret, admin, pwd);
                 });
             }, true);
-        });
+        }, true);
 
     });
 
@@ -654,7 +657,7 @@ debugger
                 complete();
             });
 
-            // Package.json
+            // Package.json.
             let pkg = {
                 name: gameName,
                 version: '0.0.1',
@@ -664,11 +667,7 @@ debugger
                 homepage: 'http://nodegame.org'
             };
 
-
-            // sort dependencies like npm(1)
-            // pkg.dependencies = sortedObject(pkg.dependencies);
-
-            // write files
+            // Write files.
 
             write(path.resolve(outDir, 'package.json'),
                   JSON.stringify(pkg, null, 4));
@@ -807,7 +806,7 @@ function createGame(options) {
                 'continue? [y/N] ';
             confirm(str, function(ok) {
                 if (ok) {
-                    process.stdin.destroy();
+                    // process.stdin.destroy();
                     createGameDir(template,
                                   appName,
                                   destinationPath,

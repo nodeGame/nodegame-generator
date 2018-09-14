@@ -16,13 +16,12 @@
   "license": "MIT",
   "dependencies": {
     "JSUS": "*",
+    "ansi-escapes": "^3.1.0",
     "commander": "2.6.0",
     "dictator": "*",
     "fs-extra": "*",
     "mkdirp": "0.5.0",
     "nodegame-game-template": "*",
-    "prompt-password": "^1.2.0",
-    "sorted-object": "1.0.0",
     "ultimatum-game": "*"
   },
   "main": "bin/nodegame",
