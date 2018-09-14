@@ -376,6 +376,7 @@ function createGameDir(template, gameName, outDir,
         console.log();
         str = ' - Enter the ADMIN username: ';
         questionNoBlank(str, function(admin) {
+            console.log();
             str = ' - Enter the ADMIN password (hidden): ';
             muteNext();
             questionNoBlank(str, function(pwd) {
@@ -383,7 +384,7 @@ function createGameDir(template, gameName, outDir,
                 str = ' - Confirm the ADMIN password (hidden): ';
                 console.log();
                 rl.question(str, function(pwd2) {
-                    mute();
+                    unmute();
                     console.log();
 
                     if (pwd !== pwd2) {
@@ -392,15 +393,21 @@ function createGameDir(template, gameName, outDir,
                         return;
                     }
 
-                    console.log();
-                    doIt(secret, admin, pwd);
+                    str = ' - Enter a description ' + '(Default: A nodeGame ' +
+                        'game based on ' + template + '): ';
+                    rl.question(str, function(descr) {
+                        descr = descr || 'A nodeGame game based on ' +
+                            template;
+                        console.log();
+                        doIt(secret, admin, pwd, descr);
+                    });
                 });
-            }, true);
-        }, true);
+            });
+        });
 
     });
 
-    function doIt(secret, admin, pwd) {
+    function doIt(secret, admin, pwd, descr) {
 
         // Loading Templates.
         let filePath;
@@ -656,7 +663,7 @@ function createGameDir(template, gameName, outDir,
             let pkg = {
                 name: gameName,
                 version: '0.0.1',
-                description: 'This is a nodeGame game based on ' + template,
+                description: descr,
                 author: author + ' ' + '<' + authorEmail + '>',
                 license: 'MIT/X11',
                 homepage: 'http://nodegame.org'
