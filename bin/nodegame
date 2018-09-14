@@ -492,7 +492,12 @@ function createGameDir(template, gameName, outDir,
         // README.
 
         var rootREADME = loadTemplate(t, 'README.template.md');
-        
+
+        // LICENSE.
+
+        var license = loadTemplate(t, 'LICENSE.template');
+
+
         mkdir(outDir, function() {
 
             mkdir(path.resolve(outDir, 'data'));
@@ -670,7 +675,13 @@ function createGameDir(template, gameName, outDir,
             rootREADME = rootREADME.replace(/{AUTHOR}/g, author);
             rootREADME = rootREADME.replace(/{EMAIL}/g, authorEmail);
             write(path.resolve(outDir, 'README.md'), rootREADME);
-                
+
+            // README.
+
+            license = license.replace(/{AUTHOR}/g, author);
+            license = license.replace(/{YEAR}/g, year);
+            write(path.resolve(outDir, 'LICENSE'), license);
+
             // Package.json.
             let pkg = {
                 name: gameName,
