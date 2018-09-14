@@ -141,6 +141,7 @@ program
 
         loadConfFile(function() {
             // Nothing.
+            rl.close();
         }, true);
     });
 
@@ -156,6 +157,7 @@ program
 
         loadConfFile(function() {
             showConf();
+            rl.close();
         });
     });
 
@@ -179,6 +181,7 @@ program
                 email: email,
                 options: options
             });
+            // rl.close in complete();
         });
 
     });
@@ -262,7 +265,6 @@ function checkGameDirs(ngDir) {
  */
 function confirm(msg, cb) {
     rl.question(msg, function(input) {
-        // rl.close();
         cb(/^y|yes|ok|true$/i.test(input));
     });
 }
@@ -366,6 +368,7 @@ function createGameDir(template, gameName, outDir,
         console.log(tmp);
 
         console.log();
+
         rl.close();
     }
 
@@ -919,8 +922,6 @@ function createConfFile(cb) {
                 if (answer) conf.email = answer;
 
                 showConf(conf);
-
-                rl.close();
 
                 writeConfFile(conf, cb);
             });
