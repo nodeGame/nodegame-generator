@@ -473,6 +473,8 @@ function createGameDir(template, gameName, outDir,
         var endPage = loadTemplate(t, filePath);
         filePath = path.join('public', 'js', 'index.js');
         var indexJS = loadTemplate(t, filePath);
+        filePath = path.join('public', 'css', 'style.css');
+        var styleCSS = loadTemplate(t, filePath);
 
         // VIEWS.
 
@@ -616,6 +618,9 @@ function createGameDir(template, gameName, outDir,
                           indexJS);
 
                     mkdir(path.resolve(outDir, 'public', 'css'), function() {
+                        write(path.resolve(outDir,
+                                           'public', 'css', 'style.css'),
+                              styleCSS);
                         complete();
                     });
                 });

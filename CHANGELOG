@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 4.2.1 (current)
+- CSS file copied
+
 ## 4.2.0
 - Auto generate secret and credentials files.
 - Eslinted nodegame.
