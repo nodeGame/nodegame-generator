@@ -1,7 +1,8 @@
 # CHANGELOG
 
-## 4.2.1 (current)
+## 4.2.1
 - CSS file copied
+- .gitignore is correctly handled also in non-dev version.
 
 ## 4.2.0
 - Auto generate secret and credentials files.
