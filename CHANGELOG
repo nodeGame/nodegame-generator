@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 5.0.0
+- No changes
+
 ## 4.2.1
 - CSS file copied
 - .gitignore is correctly handled also in non-dev version.

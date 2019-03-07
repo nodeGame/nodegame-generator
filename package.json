@@ -1,7 +1,7 @@
 {
   "name": "nodegame-generator",
   "description": "NodeGame' game generator",
-  "version": "4.2.1",
+  "version": "5.0.0",
   "author": "Stefano Balietti <futur.dorko@gmail.com>",
   "keywords": [
     "nodegame",
