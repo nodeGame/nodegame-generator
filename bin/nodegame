@@ -341,7 +341,9 @@ function createGameDir(template, gameName, outDir,
 
         // Enable by making a link in games/, if not there already.
         tmp = path.resolve(conf.ngGamesEnabledDir, gameName);
-        if (!fs.existsSync(tmp)) makeLink(outDir, tmp);
+        if (!fs.existsSync(tmp)) {
+            makeLink(path.join('..', 'games_available', gameName), tmp);
+        }
 
         if (verbose) console.log();
 
