@@ -170,6 +170,14 @@ program
     .allowUnknownOption()
     .action(function(gameName, author, email, options) {
 
+        // Do not generate confusion with hidden folders, e.g. .git.
+        if (gameName.charAt(0) === '.') {
+            console.log('Error: game names cannot start with a dot. ' +
+                        'Please correct the name and try again.');
+            rl.close();
+            return;
+        }
+        
         // This is a commander bug, get around it.
         let c = options.parent.rawArgs[3];
         if (c === '--help' || c === '--h') return;
