@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## current
+- Game names cannot start with a dot.
+
 ## 5.0.0
 - Relative links for games enabled.
 
