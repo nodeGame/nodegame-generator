@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 5.1.0
+- The private directory is created.
+
 ## 5.0.1
 - Game names cannot start with a dot.
 
