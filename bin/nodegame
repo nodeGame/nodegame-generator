@@ -177,7 +177,7 @@ program
             rl.close();
             return;
         }
-        
+
         // This is a commander bug, get around it.
         let c = options.parent.rawArgs[3];
         if (c === '--help' || c === '--h') return;
@@ -298,7 +298,8 @@ function createGameDir(template, gameName, outDir,
                        author, authorEmail, options) {
 
     // Number of synchronous / asynchronous operations.
-    var wait = 9;
+    var wait = 10;
+
     var verbose = !!options.verbose;
     var d = new Date();
     var year = d.getFullYear();
@@ -518,7 +519,6 @@ function createGameDir(template, gameName, outDir,
 
         var license = loadTemplate(t, 'LICENSE.template');
 
-
         mkdir(outDir, function() {
 
             mkdir(path.resolve(outDir, 'data'));
@@ -689,6 +689,18 @@ function createGameDir(template, gameName, outDir,
             mkdir(path.resolve(outDir, 'levels'), function() {
                 write(path.resolve(outDir, 'levels', 'README.md'),
                                    levelsREADME);
+                complete();
+            });
+
+            // PRIVATE
+            mkdir(path.resolve(outDir, 'private'), () => {
+
+                fs.copySync(ngt.resolve(path.join('private', '.gitkeep')),
+                            path.resolve(outDir, 'private', '.gitkeep'));
+
+                fs.copySync(ngt.resolve(path.join('private', 'README.md')),
+                            path.resolve(outDir, 'private', 'README.md'));
+
                 complete();
             });
 
