@@ -731,9 +731,11 @@ function createGameDir(template, gameName, outDir,
             // Write files.
 
             write(path.resolve(outDir, 'package.json'),
-                  JSON.stringify(pkg, null, 4));
+                JSON.stringify(pkg, null, 4));
             write(path.resolve(outDir, '.gitignore'),
-                  loadTemplate(t, '.gitignore'));
+                loadTemplate(t, '.gitignore'));
+            write(path.resolve(outDir, '.eslintrc.js'),
+                loadTemplate(t, '.eslintrc.js'));
 
             complete();
         });
