@@ -383,51 +383,75 @@ function createGameDir(template, gameName, outDir,
         rl.close();
     }
 
-    str = ' - Type a secret passphrase or leave blank to generate a ' +
-        'random one\n' +
-        '   (Hint: it is used to sign auth tokens, it won\'t be asked again): ';
+    str = ' - Is the game single-player? [y/N]\n' +
+          '   (Hint: single-player: labeling task, cognitive task, etc. ' +
+          'Default: No) ';
 
-    rl.question(str, function(secret) {
-
-        if ('undefined' === typeof secret || secret.trim() === '') {
-            secret = J.randomString(15, 'aA_1');
-        }
+    confirm(str, function(singlePlayer, oneRoom) {
 
         console.log();
-        str = ' - Enter the ADMIN username: ';
-        questionNoBlank(str, function(admin) {
+        console.log('   Choice: ' +
+                    (singlePlayer ? 'single' : 'multi') + '-player');
+        console.log();
+
+        if (singlePlayer) {
+            template = 'guessing game';
+            // Setting always to true for now.
+            oneRoom = true;
+        }
+
+        str = ' - Type a secret passphrase or leave blank to generate a ' +
+            'random one\n' +
+            '   (Hint: it is used to sign auth tokens, ' +
+            'it won\'t be asked again): ';
+
+        rl.question(str, function(secret) {
+
+            if ('undefined' === typeof secret || secret.trim() === '') {
+                secret = J.randomString(15, 'aA_1');
+            }
+
             console.log();
-            str = ' - Enter the ADMIN password (hidden): ';
-            muteNext();
-            questionNoBlank(str, function(pwd) {
-                muteNext();
-                str = ' - Confirm the ADMIN password (hidden): ';
+            str = ' - Enter the ADMIN username: ';
+            questionNoBlank(str, function(admin) {
                 console.log();
-                rl.question(str, function(pwd2) {
-                    unmute();
+                str = ' - Enter the ADMIN password (hidden): ';
+                muteNext();
+                questionNoBlank(str, function(pwd) {
+                    muteNext();
+                    str = ' - Confirm the ADMIN password (hidden): ';
                     console.log();
-
-                    if (pwd !== pwd2) {
-                        console.log('Error: passwords do not match.');
-                        process.exit();
-                        return;
-                    }
-
-                    str = ' - Enter a description ' + '(Default: A nodeGame ' +
-                        'game based on ' + template + '): ';
-                    rl.question(str, function(descr) {
-                        descr = descr || 'A nodeGame game based on ' +
-                            template;
+                    rl.question(str, function(pwd2) {
+                        unmute();
                         console.log();
-                        doIt(secret, admin, pwd, descr);
+
+                        if (pwd !== pwd2) {
+                            console.log('Error: passwords do not match.');
+                            process.exit();
+                            return;
+                        }
+
+                        // Description.
+                        let descr = ' A ';
+                        if (singlePlayer) descr += 'single-player ';
+                        descr += 'nodeGame game based on a ' + template;
+                        str = ' - Enter a description (Default:' +
+                              descr + '): ';
+                        rl.question(str, function(descr) {
+                            descr = descr || 'A nodeGame game based on ' +
+                            template;
+                            console.log();
+                            doIt(secret, admin, pwd, descr,
+                                 singlePlayer, oneRoom);
+                        });
                     });
                 });
             });
-        });
 
+        });
     });
 
-    function doIt(secret, admin, pwd, descr) {
+    function doIt(secret, admin, pwd, descr, singlePlayer, oneRoom) {
 
         // Loading Templates.
         let filePath;
@@ -435,89 +459,136 @@ function createGameDir(template, gameName, outDir,
 
         // AUTH.
         filePath = path.join('auth', 'auth.js');
-        var auth = loadTemplate(t, filePath);
+        let auth = loadTemplate(t, filePath);
         filePath = path.join('auth', 'auth.settings.js');
-        var authSettings = loadTemplate(t, filePath);
+        let authSettings = loadTemplate(t, filePath);
         filePath = path.join('auth', 'auth.codes.js');
-        var authCodes = loadTemplate(t, filePath);
+        let authCodes = loadTemplate(t, filePath);
 
         // CHANNEL.
 
         filePath = path.join('channel', 'channel.settings.js');
-        var channelSettings = loadTemplate(t, filePath);
+        let channelSettings = loadTemplate(t, filePath);
         filePath = path.join('channel', 'channel.secret.js');
-        var channelSecret = loadTemplate(t, filePath);
+        let channelSecret = loadTemplate(t, filePath);
         filePath = path.join('channel', 'channel.credentials.js');
-        var channelCredentials = loadTemplate(t, filePath);
+        let channelCredentials = loadTemplate(t, filePath);
 
         // GAME.
 
-        filePath = path.join('game', 'game.stages.js');
-        var gameStages = loadTemplate(t, filePath);
+        let gameStages, gameSettings;
+        if (singlePlayer) {
+            filePath = path.join('game', 'game.stages_single.js');
+            gameStages = loadTemplate(t, filePath);
+            filePath = path.join('game', 'game.settings_single.js');
+            gameSettings = loadTemplate(t, filePath);
+        }
+        else {
+            filePath = path.join('game', 'game.stages.js');
+            gameStages = loadTemplate(t, filePath);
+            filePath = path.join('game', 'game.settings.js');
+            gameSettings = loadTemplate(t, filePath);
+        }
         filePath = path.join('game', 'game.setup.js');
-        var gameSetup = loadTemplate(t, filePath);
-        filePath = path.join('game', 'game.settings.js');
-        var gameSettings = loadTemplate(t, filePath);
+        let gameSetup = loadTemplate(t, filePath);
 
         // GAME / client_types.
 
-        filePath = path.join('game', 'client_types', 'player.js');
-        var typePlayer = loadTemplate(t, filePath);
-        filePath = path.join('game', 'client_types', 'bot.js');
-        var typeBot = loadTemplate(t, filePath);
-        filePath = path.join('game', 'client_types', 'logic.js');
-        var typeLogic = loadTemplate(t, filePath);
+        let typePlayer, typeBot, typeLogic, typeAutoplay;
+
+        if (singlePlayer) {
+            filePath = path.join('game', 'client_types', 'player_single.js');
+            typePlayer = loadTemplate(t, filePath);
+            filePath = path.join('game', 'client_types', 'bot_single.js');
+            typeBot = loadTemplate(t, filePath);
+            filePath = path.join('game', 'client_types', 'logic_single.js');
+            typeLogic = loadTemplate(t, filePath);
+            filePath = path.join('game', 'client_types', 'autoplay_single.js');
+            typeAutoplay = loadTemplate(t, filePath);
+        }
+        else {
+            filePath = path.join('game', 'client_types', 'player.js');
+            typePlayer = loadTemplate(t, filePath);
+            filePath = path.join('game', 'client_types', 'bot.js');
+            typeBot = loadTemplate(t, filePath);
+            filePath = path.join('game', 'client_types', 'logic.js');
+            typeLogic = loadTemplate(t, filePath);
+            filePath = path.join('game', 'client_types', 'autoplay.js');
+            typeAutoplay = loadTemplate(t, filePath);
+        }
+
+
         filePath = path.join('game', 'client_types', 'phantom.js');
-        var typePhantom = loadTemplate(t, filePath);
-        filePath = path.join('game', 'client_types', 'autoplay.js');
-        var typeAutoplay = loadTemplate(t, filePath);
+        let typePhantom = loadTemplate(t, filePath);
 
         // PUBLIC.
 
         filePath = path.join('public', 'index.htm');
-        var indexPage = loadTemplate(t, filePath);
-        filePath = path.join('public', 'game.htm');
-        var gamePage = loadTemplate(t, filePath);
-        filePath = path.join('public', 'instructions.htm');
-        var instrPage = loadTemplate(t, filePath);
-        filePath = path.join('public', 'end.htm');
-        var endPage = loadTemplate(t, filePath);
+        let indexPage = loadTemplate(t, filePath);
+
+        let gamePage, instrPage;
+
+        if (singlePlayer) {
+            filePath = path.join('public', 'game_single.htm');
+            gamePage = loadTemplate(t, filePath);
+
+            filePath = path.join('public', 'instructions_single.htm');
+            instrPage = loadTemplate(t, filePath);
+        }
+        else {
+            filePath = path.join('public', 'game.htm');
+            gamePage = loadTemplate(t, filePath);
+
+            filePath = path.join('public', 'instructions.htm');
+            instrPage = loadTemplate(t, filePath);
+        }
+
+
+        // filePath = path.join('public', 'end.htm');
+        // let endPage = loadTemplate(t, filePath);
         filePath = path.join('public', 'js', 'index.js');
-        var indexJS = loadTemplate(t, filePath);
+        let indexJS = loadTemplate(t, filePath);
         filePath = path.join('public', 'css', 'style.css');
-        var styleCSS = loadTemplate(t, filePath);
+        let styleCSS = loadTemplate(t, filePath);
 
         // VIEWS.
 
 
         // WAITROOM.
+        let waitroomSettings;
+        if (singlePlayer) {
+            filePath = path.join('waitroom', 'waitroom.settings_single.js');
+            waitroomSettings = loadTemplate(t, filePath);
+        }
+        else {
+            filePath = path.join('waitroom', 'waitroom.settings.js');
+            waitroomSettings = loadTemplate(t, filePath);
 
-        filePath = path.join('waitroom', 'waitroom.settings.js');
-        var waitroomSettings = loadTemplate(t, filePath);
+        }
         filePath = path.join('waitroom', 'waitroom.js');
-        var waitroom = loadTemplate(t, 'waitroom/waitroom.js');
+        let waitroom = loadTemplate(t, 'waitroom/waitroom.js');
 
         // REQUIREMENTS.
 
         filePath = path.join('requirements', 'requirements.settings.js');
-        var requirementsSettings = loadTemplate(t, filePath);
+        let requirementsSettings = loadTemplate(t, filePath);
         filePath = path.join('requirements', 'requirements.room.js');
-        var requirementsRoom = loadTemplate(t, filePath);
+        let requirementsRoom = loadTemplate(t, filePath);
         filePath = path.join('requirements', 'requirements.js');
-        var requirements = loadTemplate(t, filePath);
+        let requirements = loadTemplate(t, filePath);
 
         // LEVELS.
 
         filePath = path.join('levels', 'README.md');
-        var levelsREADME = loadTemplate(t, filePath);
+        let levelsREADME = loadTemplate(t, filePath);
 
         // README.
 
-        var rootREADME = loadTemplate(t, 'README.template.md');
+        let rootREADME = loadTemplate(t, 'README.template.md');
 
         // LICENSE.
 
-        var license = loadTemplate(t, 'LICENSE.template');
+        let license = loadTemplate(t, 'LICENSE.template');
 
         mkdir(outDir, function() {
 
@@ -616,8 +687,8 @@ function createGameDir(template, gameName, outDir,
                 write(filePath, instrPage);
                 filePath = path.resolve(outDir, 'public', 'game.htm');
                 write(filePath, gamePage);
-                filePath = path.resolve(outDir, 'public', 'end.htm');
-                write(filePath, endPage);
+                // filePath = path.resolve(outDir, 'public', 'end.htm');
+                // write(filePath, endPage);
 
                 // Copying favicon over.
                 fs.copySync(ngt.resolve(path.join('public', 'favicon.ico')),
@@ -651,6 +722,10 @@ function createGameDir(template, gameName, outDir,
 
             // WAITROOM.
             mkdir(path.resolve(outDir, 'waitroom'), function() {
+
+                let value = oneRoom ? 'true' : 'false';
+                waitroomSettings = waitroomSettings
+                                       .replace(/{SAME_ROOM_VALUE}/g, value);
 
                 waitroom = substituteHeader(waitroom);
                 waitroomSettings = substituteHeader(waitroomSettings);
