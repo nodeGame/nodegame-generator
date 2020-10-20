@@ -384,7 +384,7 @@ function createGameDir(template, gameName, outDir,
     }
 
     str = ' - Is the game single-player? [y/N]\n' +
-          '   (Hint: single-player: labeling task, cognitive task, etc. ' +
+          '   (Hint: single-player: labeling task, survey, etc. ' +
           'Default: No) ';
 
     confirm(str, function(singlePlayer, oneRoom) {
@@ -679,7 +679,7 @@ function createGameDir(template, gameName, outDir,
             // PUBLIC.
             mkdir(path.resolve(outDir, 'public'), function() {
                 indexJS = substituteHeader(indexJS);
-                instrPage = instrPage.replace('{NAME}', gameName);
+                // instrPage = instrPage.replace('{NAME}', gameName);
 
                 let filePath = path.resolve(outDir, 'public', 'index.htm');
                 write(filePath, indexPage);
