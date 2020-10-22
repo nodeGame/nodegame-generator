@@ -19,6 +19,9 @@ const isWin = /^win/.test(process.platform);
 const root = J.resolveModuleDir('nodegame-generator');
 const confFile = path.resolve(root, 'conf', 'generator.conf.json');
 
+const NODEGAME_MODULE = 'nodegame';
+// const NODEGAME_MODULE = 'nodegame-test';
+
 // Setup readline.
 let rl = readline.createInterface({
     input: process.stdin,
@@ -170,6 +173,12 @@ program
     .allowUnknownOption()
     .action(function(gameName, author, email, options) {
 
+        if (!gameName) {
+            console.log('Error: game name is missing.');
+            rl.close();
+            return;
+        }
+
         // Do not generate confusion with hidden folders, e.g. .git.
         if (gameName.charAt(0) === '.') {
             console.log('Error: game names cannot start with a dot. ' +
@@ -220,7 +229,7 @@ function detectNodeGameInstallation() {
             // Nothing.
         }
     }
-    if (ngPkg.name === 'nodegame') {
+    if (ngPkg.name === NODEGAME_MODULE) {
 
         console.log('NodeGame v' + ngPkg.version +
                     ' installation detected in: ');
@@ -679,6 +688,7 @@ function createGameDir(template, gameName, outDir,
             // PUBLIC.
             mkdir(path.resolve(outDir, 'public'), function() {
                 indexJS = substituteHeader(indexJS);
+                indexJS = indexJS.replace('{ENDPOINT}', ('/' + gameName));
                 // instrPage = instrPage.replace('{NAME}', gameName);
 
                 let filePath = path.resolve(outDir, 'public', 'index.htm');
@@ -897,9 +907,10 @@ function createGame(options) {
     else {
         // Is there a default game folder?
         if (!conf.ngGamesAvailDir) {
-            console.log('Error: no default game folder found. Please ' +
-                        'provide an absolute path for the game, or ' +
-                        'set the default game folder');
+            console.log('Error: no default games folder found. Please ' +
+                        'provide an absolute path for the game, or set the ' +
+                        'default games folder with command "update-conf"');
+            rl.close();
             return;
         }
         destinationPath = path.resolve(conf.ngGamesAvailDir, options.game);
