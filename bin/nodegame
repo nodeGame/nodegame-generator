@@ -447,7 +447,7 @@ function createGameDir(template, gameName, outDir,
                         str = ' - Enter a description (Default:' +
                               descr + '): ';
                         rl.question(str, function(descr) {
-                            descr = descr || 'A nodeGame game based on ' +
+                            descr = descr || 'A nodeGame game based on a ' +
                             template;
                             console.log();
                             doIt(secret, admin, pwd, descr,
