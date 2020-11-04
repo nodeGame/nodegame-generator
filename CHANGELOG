@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 6.0.2 current
+- Games directories are always set by update-conf.
+
 ## 6.0.1
 - Minor text.
 
