@@ -1023,6 +1023,16 @@ function createConfFile(cb) {
         // Set nodeGame dir.
         conf.ngDir = answer;
 
+        // Add game directories to conf.
+        let gameDirs = checkGameDirs(answer);
+        if (!gameDirs) {
+            console.log('Err: Folders games and/or games_available ' +
+                        'could not be found');
+            return;
+        }
+        conf.ngGamesAvailDir = gameDirs.ngGamesAvailDir;
+        conf.ngGamesEnabledDir = gameDirs.ngGamesEnabledDir;
+
         str = 'Default author name: ';
         if (conf.author) str += '[' + conf.author + '] ';
 
@@ -1124,6 +1134,8 @@ function colorWrite(str, br) {
 
 function makeLink(from, to, type) {
     if (isWin) {
+        // console.log(from);
+        // console.log(to);
         if (type === 'file') fs.linkSync(from, to, 'file');
         else fs.symlinkSync(from, to, 'junction');
     }
