@@ -138,10 +138,6 @@ program
     .allowUnknownOption()
     .action(function(options) {
 
-        // This is a commander bug, get around it.
-        let c = options.parent.rawArgs[3];
-        if (c === '--help' || c === '--h') return;
-
         loadConfFile(function() {
             // Nothing.
             rl.close();
@@ -153,10 +149,6 @@ program
     .description('Shows current configuration')
     .allowUnknownOption()
     .action(function(options) {
-
-        // This is a commander bug, get around it.
-        let c = options.parent.rawArgs[3];
-        if (c === '--help' || c === '--h') return;
 
         loadConfFile(function() {
             showConf();
@@ -186,10 +178,6 @@ program
             rl.close();
             return;
         }
-
-        // This is a commander bug, get around it.
-        let c = options.parent.rawArgs[3];
-        if (c === '--help' || c === '--h') return;
 
         loadConfFile(function() {
             createGame({
