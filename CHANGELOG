@@ -1,7 +1,8 @@
 # CHANGELOG
 
-## 6.0.2 current
+## 6.0.2
 - Games directories are always set by update-conf.
+- Updated to newer version of commander.
 
 ## 6.0.1
 - Minor text.
