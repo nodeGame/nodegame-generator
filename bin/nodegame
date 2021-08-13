@@ -19,6 +19,8 @@ const isWin = /^win/.test(process.platform);
 const root = J.resolveModuleDir('nodegame-generator');
 const confFile = path.resolve(root, 'conf', 'generator.conf.json');
 
+const exp = require(path.resolve(root, 'lib', 'export.js'));
+
 const NODEGAME_MODULE = 'nodegame';
 // const NODEGAME_MODULE = 'nodegame-test';
 
@@ -188,6 +190,57 @@ program
             });
             // rl.close in complete();
         });
+
+    });
+
+program
+    .command('export-data [game_name]')
+    .description('Exports data from a game.')
+    .option('-d, --export-dir', 'path to export directory')
+    .option('-r, --room', 'room/s to export')
+    .option('-v, --verbose', 'verbose output')
+    .allowUnknownOption()
+    .action(function(gameName, options) {
+
+        if (!gameName) {
+            console.log('Error: game name is missing.');
+            rl.close();
+            return;
+        }
+
+
+        loadConfFile(() => {
+            console.log();
+            console.log(' *** Exporting data from game: ' + gameName);
+            console.log();
+            exp.data(conf, gameName, options, () => {
+                console.log();
+                console.log(' *** Export finished.');
+                console.log();
+                process.exit();
+            });
+        });
+
+    });
+
+program
+    .command('export-logs [type]')
+    .description('Exports logs from nodeGame server')
+// .option('-t, --template <template>', 'set the template for game')
+    .option('-f, --force', 'force on non-empty directory')
+    .option('-v, --verbose', 'verbose output')
+    .allowUnknownOption()
+    .action(function(gameName, options) {
+
+        if (!gameName) {
+            console.log('Error: game name is missing.');
+            rl.close();
+            return;
+        }
+
+        loadConfFile(() => exp.logs(conf, gameName, options, () => {
+            process.exit();
+        }));
 
     });
 
@@ -976,7 +1029,7 @@ function createConfFile(cb) {
     }
     if (conf.ngDir) str += '[' + conf.ngDir + '] ';
 
-    colorWrite('Input missing information, enter to keep default');
+    colorWrite('Please add missing info or press enter to keep default');
 
     rl.question(str, function(answer) {
 
@@ -1148,7 +1201,10 @@ else {
 
     if (firstCommand !== 'create-game' &&
         firstCommand !== 'show-conf' &&
-        firstCommand !== 'update-conf') {
+        firstCommand !== 'update-conf' &&
+        firstCommand !== 'export-data' &&
+        firstCommand !== 'export-logs'
+    ) {
 
         console.log('Error: invalid command: ' + firstCommand);
     }
