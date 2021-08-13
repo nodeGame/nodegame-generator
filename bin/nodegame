@@ -196,11 +196,15 @@ program
 program
     .command('export-data [game_name]')
     .description('Exports data from a game.')
-    .option('-d, --export-dir', 'path to export directory')
-    .option('-r, --room', 'room/s to export')
+    .option('-d, --export-dir <dir>', 'path to export directory')
+    .option('-r, --rooms <rooms>', 'room/s to export')
+    .option('-f, --from-room <room>', 'export from room (included)')
+    .option('-t, --to-room <room>', 'export up to room (included)')
     .option('-v, --verbose', 'verbose output')
     .allowUnknownOption()
-    .action(function(gameName, options) {
+    .action(function(gameName, opts) {
+
+        debugger
 
         if (!gameName) {
             console.log('Error: game name is missing.');
@@ -210,10 +214,25 @@ program
 
 
         loadConfFile(() => {
+
+            debugger
+
+            exp.setDefaults(conf, 'data', opts);
+
             console.log();
             console.log(' *** Exporting data from game: ' + gameName);
+            console.log(' *** Export folder: ' + opts.exportDir);
+            if (opts.minRoom) console.log(' *** Min Room: ' + opts.minRoom);
+            if (opts.maxRoom) console.log(' *** Max Room: ' + opts.maxRoom);
+            if (opts.fromRoom) console.log(' *** From room: ' + opts.fromRoom);
+            if (opts.toRoom) console.log(' *** From room: ' + opts.toRoom);
+            if (opts.rooms) console.log(' *** Rooms: ' + opts.roomsOrig);
+
             console.log();
-            exp.data(conf, gameName, options, () => {
+
+            console.log(opts)
+
+            exp.data(conf, gameName, opts, () => {
                 console.log();
                 console.log(' *** Export finished.');
                 console.log();
@@ -1161,6 +1180,7 @@ function loadConfFile(cb, force) {
         }
     }
     catch(e) {
+        console.log(e);
         console.log('');
         colorWrite('Warning!');
         console.log('nodegame-generator conf file not found or not readable');
