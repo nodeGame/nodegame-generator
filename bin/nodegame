@@ -194,72 +194,73 @@ program
     });
 
 program
-    .command('export-data [game_name]')
+    .command('export-data <game>')
     .description('Exports data from a game.')
-    .option('-d, --export-dir <dir>', 'path to export directory')
+    // Input/Output
+    .option('-g, --games-dir <dir>, log directory (default log)')
+    .option('-e, --export-dir <dir>, export directory (default export)')
+    .option('-E, --create-export-sub-dir, create sub-directory inside export directory')
+    .option('-r, --recursive, recursively search for files')
+    .option('-f, --files <files>', 'comma separated list of files/patterns')
+    .option('-F, --files-add <files>', 'comma separated list of ' +
+    'files/patterns to add to defaults')
+    .option('-o, --out-format <format>', 'the export format (json,ndjson,csv)')
+    .option('-i, --in-format <format>', 'the import format (json,ndjson,csv)')
+    // Handle errors.
+    .option('-d, --on-duplicated-names <action>', 'action to take if a file ' +
+    'with same name exists in export directory (rename|append|err)')
+    .option('-t, --throw', 'throws errors (default continues to next file)')
+    // Filters.
     .option('-r, --rooms <rooms>', 'room/s to export')
     .option('-f, --from-room <room>', 'export from room (included)')
     .option('-t, --to-room <room>', 'export up to room (included)')
+    // CSV TODO: in progress
+    // .option(' , --csv-flatten', 'room/s to export')
+    // .option(' , --csv-header <header>', 'comma separeted values')
+    // .option(' , --csv-no-header <header>', 'removes header in csv')
+    // Verbose.
     .option('-v, --verbose', 'verbose output')
     .allowUnknownOption()
-    .action(function(gameName, opts) {
+    .action(function(game, opts) {
 
-        debugger
+        opts.game = game;
+        processExportOptions(opts);
 
-        if (!gameName) {
-            console.log('Error: game name is missing.');
-            rl.close();
-            return;
-        }
-
-
-        loadConfFile(() => {
-
-            debugger
-
-            exp.setDefaults(conf, 'data', opts);
-
-            console.log();
-            console.log(' *** Exporting data from game: ' + gameName);
-            console.log(' *** Export folder: ' + opts.exportDir);
-            if (opts.minRoom) console.log(' *** Min Room: ' + opts.minRoom);
-            if (opts.maxRoom) console.log(' *** Max Room: ' + opts.maxRoom);
-            if (opts.fromRoom) console.log(' *** From room: ' + opts.fromRoom);
-            if (opts.toRoom) console.log(' *** From room: ' + opts.toRoom);
-            if (opts.rooms) console.log(' *** Rooms: ' + opts.roomsOrig);
-
-            console.log();
-
-            console.log(opts)
-
-            exp.data(conf, gameName, opts, () => {
-                console.log();
-                console.log(' *** Export finished.');
-                console.log();
-                process.exit();
-            });
-        });
+        loadConfFile(() => exp.data(conf, opts, terminateExport));
 
     });
 
 program
-    .command('export-logs [type]')
+    .command('export-logs')
     .description('Exports logs from nodeGame server')
-// .option('-t, --template <template>', 'set the template for game')
-    .option('-f, --force', 'force on non-empty directory')
+     // Input/Output
+    .option('-l, --log-dir <dir>, log directory (default log)')
+    .option('-e, --export-dir <dir>, export directory (default export)')
+    .option('-E, --create-export-sub-dir, create sub-directory inside export directory')
+    .option('-r, --recursive, recursively search for files')
+    .option('-f, --files <files>', 'comma separated list of files/patterns')
+    .option('-F, --files-add <files>', 'comma separated list of ' +
+            'files/patterns to add to defaults')
+    .option('-o, --out-format <format>', 'the export format (json,ndjson,csv)')
+    .option('-i, --in-format <format>', 'the import format (json,ndjson,csv)')
+    // Handle errors.
+    .option('-d, --on-duplicated-names <action>', 'action to take if a file ' +
+            'with same name exists in export directory (rename|append|err)')
+    .option('-t, --throw', 'throws errors (default continues to next file)')
+    // Filters.
+    .option('-g, --game <game>, game to export')
+    .option('-d, --done-only', 'exports only "done" messages')
+    .option('-c, --clean-up', 'cleanup logs before export')
+    .option('-m , --msg-type <type>', 'messages to export (incoming|outgoing|all)')
+    // Verbose.
     .option('-v, --verbose', 'verbose output')
     .allowUnknownOption()
-    .action(function(gameName, options) {
+    .action(function(opts) {
 
-        if (!gameName) {
-            console.log('Error: game name is missing.');
-            rl.close();
-            return;
-        }
+        processExportOptions(opts);
 
-        loadConfFile(() => exp.logs(conf, gameName, options, () => {
-            process.exit();
-        }));
+
+        loadConfFile(() => exp.logs(conf, opts, terminateExport));
 
     });
 
@@ -313,6 +314,49 @@ function detectNodeGameInstallation() {
     return false;
 }
 
+/**
+ * ## processExportOptions
+ *
+ * Calls process.exit otherwise the process hangs
+ */
+const processExportOptions = opts => {
+    if (opts.throw) {
+        opts.onError = 'throw';
+        delete opts.throw;
+    }
+
+    if (opts.logDir) {
+        opts.dataDir = opts.logDir;
+        delete opts.logDir;
+    }
+
+    if (opts.gamesDir) {
+        opts.dataDir = opts.gamesDir;
+        delete opts.gamesDir;
+    }
+
+    if (opts.msgType) {
+        let m = opts.msgType;
+        if (m === 'incoming' || m === 'all') opts.incoming = true;
+        if (m === 'outgoing' || m === 'all') opts.outgoing = true;
+        delete opts.msgType;
+    }
+
+    if (opts.files) opts.files = opts.files.split(',');
+    if (opts.filesAdd) opts.filesAdd = opts.filesAdd.split(',');
+};
+
+/**
+ * ## terminateExport
+ *
+ * Calls process.exit otherwise the process hangs
+ */
+const terminateExport = () => {
+   console.log();
+   console.log(' *** Export finished.');
+   console.log();
+   process.exit();
+};
 
 /**
  * ## checkGameDirs
@@ -1161,23 +1205,24 @@ function writeConfFile(conf, cb) {
             console.log('');
         }
 
-        if (cb) cb();
+        if (cb) {
+            try {
+                cb();
+            }
+            catch(e) {
+                console.log(e);
+                colorWrite('An error occurred. Aborted.');
+                process.exit();
+            }
+        }
     });
 }
 
 function loadConfFile(cb, force) {
+    let res = true;
     // Try to load configuration. If not found start utility to create it.
     try {
         conf = require(confFile);
-        if (force || !conf.author || !conf.email || !conf.ngDir) {
-            if (!force) {
-                console.log('Missing or incomple conf. Trying to recover it.');
-            }
-            createConfFile(cb);
-        }
-        else {
-            cb();
-        }
     }
     catch(e) {
         console.log(e);
@@ -1185,6 +1230,26 @@ function loadConfFile(cb, force) {
         colorWrite('Warning!');
         console.log('nodegame-generator conf file not found or not readable');
         createConfFile(cb);
+        res = false;
+    }
+
+    if (!res) return;
+
+    if (force || !conf.author || !conf.email || !conf.ngDir) {
+        if (!force) {
+            console.log('Missing or incomple conf. Trying to recover it.');
+        }
+        createConfFile(cb);
+    }
+    else {
+        try {
+            cb();
+        }
+        catch(e) {
+            console.log(e);
+            colorWrite('An error occurred. Aborted.')
+            process.exit();
+        }
     }
 }
 
