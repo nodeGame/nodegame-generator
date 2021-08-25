@@ -215,9 +215,11 @@ program
     .option('-f, --from-room <room>', 'export from room (included)')
     .option('-t, --to-room <room>', 'export up to room (included)')
     // CSV
-    .option(' , --csv-flatten [group]', 'merges all items [by group] before export')
-    .option(' , --csv-header <header>', 'header in comma separeted values')
-    .option(' , --csv-no-header', 'removes header in exported csv')
+    .option(' , --out-csv-flatten [group]', 'merges all items [by group] before export')
+    .option(' , --out-csv-header <header>', 'header for export csv files (comma separeted values)')
+    .option(' , --out-csv-no-header', 'no header in export csv files')
+    .option(' , --in-csv-header <header>', 'header for import csv files (comma separeted values)')
+    .option(' , --in-csv-no-header', 'no header in import csv files')
     // Verbose.
     .option('-v, --verbose', 'verbose output')
     .allowUnknownOption()
@@ -253,9 +255,11 @@ program
     .option('-c, --clean-up', 'cleanup logs before export')
     .option('-m , --msg-type <type>', 'messages to export (incoming|outgoing|all)')
      // CSV
-     .option(' , --csv-flatten [group]', 'merges all items [by group] before export')
-     .option(' , --csv-header <header>', 'header in comma separeted values')
-     .option(' , --csv-no-header', 'removes header in exported csv')
+     .option(' , --out-csv-flatten [group]', 'merges all items [by group] before export')
+     .option(' , --out-csv-header <header>', 'header for export csv files (comma separeted values)')
+     .option(' , --out-csv-no-header', 'no header in export csv files')
+     .option(' , --in-csv-header <header>', 'header for import csv files (comma separeted values)')
+     .option(' , --in-csv-no-header', 'no header in import csv files')
     // Verbose.
     .option('-v, --verbose', 'verbose output')
     .allowUnknownOption()
@@ -348,8 +352,11 @@ const processExportOptions = opts => {
     if (opts.files) opts.files = opts.files.split(',');
     if (opts.filesAdd) opts.filesAdd = opts.filesAdd.split(',');
 
-    if (opts.csvHeader) opts.csvHeader = opts.csvHeader.split(',');
-    if (opts.csvNoHeader) opts.csvHeader = false;
+    if (opts.outCsvHeader) opts.outCsvHeader = opts.outCsvHeader.split(',');
+    if (opts.outCsvNoHeader) opts.outCsvHeader = false;
+
+    if (opts.inCsvHeader) opts.inCsvHeader = opts.inCsvHeader.split(',');
+    if (opts.inCsvNoHeader) opts.inCsvHeader = false;
 };
 
 /**
