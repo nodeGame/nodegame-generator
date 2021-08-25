@@ -214,10 +214,10 @@ program
     .option('-r, --rooms <rooms>', 'room/s to export')
     .option('-f, --from-room <room>', 'export from room (included)')
     .option('-t, --to-room <room>', 'export up to room (included)')
-    // CSV TODO: in progress
-    // .option(' , --csv-flatten', 'room/s to export')
-    // .option(' , --csv-header <header>', 'comma separeted values')
-    // .option(' , --csv-no-header <header>', 'removes header in csv')
+    // CSV
+    .option(' , --csv-flatten [group]', 'merges all items [by group] before export')
+    .option(' , --csv-header <header>', 'header in comma separeted values')
+    .option(' , --csv-no-header', 'removes header in exported csv')
     // Verbose.
     .option('-v, --verbose', 'verbose output')
     .allowUnknownOption()
@@ -252,13 +252,16 @@ program
     .option('-d, --done-only', 'exports only "done" messages')
     .option('-c, --clean-up', 'cleanup logs before export')
     .option('-m , --msg-type <type>', 'messages to export (incoming|outgoing|all)')
+     // CSV
+     .option(' , --csv-flatten [group]', 'merges all items [by group] before export')
+     .option(' , --csv-header <header>', 'header in comma separeted values')
+     .option(' , --csv-no-header', 'removes header in exported csv')
     // Verbose.
     .option('-v, --verbose', 'verbose output')
     .allowUnknownOption()
     .action(function(opts) {
 
         processExportOptions(opts);
-
 
         loadConfFile(() => exp.logs(conf, opts, terminateExport));
 
@@ -344,6 +347,9 @@ const processExportOptions = opts => {
 
     if (opts.files) opts.files = opts.files.split(',');
     if (opts.filesAdd) opts.filesAdd = opts.filesAdd.split(',');
+
+    if (opts.csvHeader) opts.csvHeader = opts.csvHeader.split(',');
+    if (opts.csvNoHeader) opts.csvHeader = false;
 };
 
 /**
@@ -352,10 +358,10 @@ const processExportOptions = opts => {
  * Calls process.exit otherwise the process hangs
  */
 const terminateExport = () => {
-   console.log();
-   console.log(' *** Export finished.');
-   console.log();
-   process.exit();
+    console.log();
+    console.log(' *** Export finished.');
+    console.log();
+    process.exit();
 };
 
 /**
