@@ -197,34 +197,35 @@ program
     .command('export-data <game>')
     .description('Exports data from a game.')
     // Input/Output
-    .option('-g, --games-dir <dir>, log directory (default log)')
-    .option('-e, --export-dir <dir>, export directory (default export)')
-    .option('-E, --create-export-sub-dir, create sub-directory inside export directory')
-    .option('-r, --recursive, recursively search for files')
-    .option('-f, --files <files>', 'comma separated list of files/patterns')
-    .option('-F, --files-add <files>', 'comma separated list of ' +
-    'files/patterns to add to defaults')
-    .option('-o, --out-format <format>', 'the export format (json,ndjson,csv)')
-    .option('-i, --in-format <format>', 'the import format (json,ndjson,csv)')
+   .option('    --games-dir <dir>', 'log directory (default log)')
+   .option('    --export-dir <dir>', 'export directory (default export)')
+   .option('    --create-export-sub-dir', 'create sub-directory inside export directory')
+   .option('-r, --recursive', 'recursively search for files')
+   .option('    --files <files>', 'comma separated list of files/patterns')
+   .option('    --files-add <files>', 'comma separated list of ' +
+           'files/patterns to add to defaults')
+   .option('    --out-format <format>', 'the export format (json,ndjson,csv)')
+   .option('    --in-format <format>', 'the import format (json,ndjson,csv)')
     // Handle errors.
-    .option('-d, --on-duplicated-names <action>', 'action to take if a file ' +
-    'with same name exists in export directory (rename|append|err)')
+    .option('    --on-duplicated-names <action>', 'action to take if a file ' +
+           'with same name exists in export directory (rename|append|err)')
     .option('-t, --throw', 'throws errors (default continues to next file)')
     // Filters.
-    .option('-r, --rooms <rooms>', 'room/s to export')
-    .option('-f, --from-room <room>', 'export from room (included)')
-    .option('-t, --to-room <room>', 'export up to room (included)')
+    .option('    --rooms <rooms>', 'room/s to export')
+    .option('    --from-room <room>', 'export from room (included)')
+    .option('    --to-room <room>', 'export up to room (included)')
     // CSV
-    .option(' , --out-csv-flatten [group]', 'merges all items [by group] before export')
-    .option(' , --out-csv-header <header>', 'header for export csv files (comma separeted values)')
-    .option(' , --out-csv-no-header', 'no header in export csv files')
-    .option(' , --in-csv-header <header>', 'header for import csv files (comma separeted values)')
-    .option(' , --in-csv-no-header', 'no header in import csv files')
+    .option('    --out-csv-flatten [group]', 'merges all items [by group] before export')
+    .option('    --out-csv-header <header>', 'header for export csv files (comma separeted values)')
+    .option('    --out-csv-no-header', 'no header in export csv files')
+    .option('    --out-csv-obj-level <level>', 'level of nested objects to expand before export')
+    .option('    --in-csv-header <header>', 'header for import csv files (comma separeted values)')
+    .option('    --in-csv-no-header', 'no header in import csv files')
     // Verbose.
     .option('-v, --verbose', 'verbose output')
     .allowUnknownOption()
     .action(function(game, opts) {
-
+        // console.log(arguments);
         opts.game = game;
         processExportOptions(opts);
 
@@ -236,30 +237,31 @@ program
     .command('export-logs')
     .description('Exports logs from nodeGame server')
      // Input/Output
-    .option('-l, --log-dir <dir>, log directory (default log)')
-    .option('-e, --export-dir <dir>, export directory (default export)')
-    .option('-E, --create-export-sub-dir, create sub-directory inside export directory')
-    .option('-r, --recursive, recursively search for files')
-    .option('-f, --files <files>', 'comma separated list of files/patterns')
-    .option('-F, --files-add <files>', 'comma separated list of ' +
+    .option('    --games-dir <dir>', 'log directory (default log)')
+    .option('    --export-dir <dir>', 'export directory (default export)')
+    .option('    --create-export-sub-dir', 'create sub-directory inside export directory')
+    .option('-r, --recursive', 'recursively search for files')
+    .option('    --files <files>', 'comma separated list of files/patterns')
+    .option('    --files-add <files>', 'comma separated list of ' +
             'files/patterns to add to defaults')
-    .option('-o, --out-format <format>', 'the export format (json,ndjson,csv)')
-    .option('-i, --in-format <format>', 'the import format (json,ndjson,csv)')
+    .option('    --out-format <format>', 'the export format (json,ndjson,csv)')
+    .option('    --in-format <format>', 'the import format (json,ndjson,csv)')
     // Handle errors.
-    .option('-d, --on-duplicated-names <action>', 'action to take if a file ' +
+    .option('    --on-duplicated-names <action>', 'action to take if a file ' +
             'with same name exists in export directory (rename|append|err)')
     .option('-t, --throw', 'throws errors (default continues to next file)')
     // Filters.
-    .option('-g, --game <game>, game to export')
-    .option('-d, --done-only', 'exports only "done" messages')
-    .option('-c, --clean-up', 'cleanup logs before export')
-    .option('-m , --msg-type <type>', 'messages to export (incoming|outgoing|all)')
+    .option('    --game <game>', 'export logs only for this game')
+    .option('    --set-msg-only', 'exports only "set" messages (e.g., "done" msgs)')
+    .option('    --clean-up', 'cleanup logs before export')
+    .option('    --msg-type <type>', 'messages to export (incoming|outgoing|all)')
      // CSV
-     .option(' , --out-csv-flatten [group]', 'merges all items [by group] before export')
-     .option(' , --out-csv-header <header>', 'header for export csv files (comma separeted values)')
-     .option(' , --out-csv-no-header', 'no header in export csv files')
-     .option(' , --in-csv-header <header>', 'header for import csv files (comma separeted values)')
-     .option(' , --in-csv-no-header', 'no header in import csv files')
+    .option('    --out-csv-flatten [group]', 'merges all items [by group] before export')
+    .option('    --out-csv-header <header>', 'header for export csv files (comma separeted values)')
+    .option('    --out-csv-no-header', 'no header in export csv files')
+    .option('    --out-csv-obj-level <level>', 'level of nested objects to expand before export')
+    .option('    --in-csv-header <header>', 'header for import csv files (comma separeted values)')
+    .option('    --in-csv-no-header', 'no header in import csv files')
     // Verbose.
     .option('-v, --verbose', 'verbose output')
     .allowUnknownOption()
@@ -357,6 +359,8 @@ const processExportOptions = opts => {
 
     if (opts.inCsvHeader) opts.inCsvHeader = opts.inCsvHeader.split(',');
     if (opts.inCsvNoHeader) opts.inCsvHeader = false;
+
+    if (opts.outCSvObjLevel) opts.outCSvObjLevel = J.isInt(opts.outCSvObjLevel);
 };
 
 /**
