@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 7.0.0
+- Export functions added for logs and data.
+
 ## 6.0.2
 - Games directories are always set by update-conf.
 - Updated to newer version of commander.
