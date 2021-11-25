@@ -197,7 +197,7 @@ program
     .command('export-data <game>')
     .description('Exports data from a game.')
     // Input/Output
-   .option('    --games-dir <dir>', 'log directory (default log)')
+   .option('    --games-dir <dir>', 'games directory (default games/)')
    .option('    --export-dir <dir>', 'export directory (default export)')
    .option('    --create-export-sub-dir', 'create sub-directory inside export directory')
    .option('-r, --recursive', 'recursively search for files')
@@ -237,7 +237,7 @@ program
     .command('export-logs')
     .description('Exports logs from nodeGame server')
      // Input/Output
-    .option('    --games-dir <dir>', 'log directory (default log)')
+    .option('    --log-dir <dir>', 'log directory (default log/)')
     .option('    --export-dir <dir>', 'export directory (default export)')
     .option('    --create-export-sub-dir', 'create sub-directory inside export directory')
     .option('-r, --recursive', 'recursively search for files')
