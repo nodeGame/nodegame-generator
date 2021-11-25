@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 7.0.1 ## current
+- Fixed bugs and typos for export.
+
 ## 7.0.0
 - Export functions added for logs and data.
 
