@@ -351,13 +351,17 @@ const processExportOptions = opts => {
         delete opts.msgType;
     }
 
-    if (opts.files) opts.files = opts.files.split(',');
+    if ('string' === typeof opts.files) opts.files = opts.files.split(',');
     if (opts.filesAdd) opts.filesAdd = opts.filesAdd.split(',');
 
-    if (opts.outCsvHeader) opts.outCsvHeader = opts.outCsvHeader.split(',');
+    if ('string' === typeof opts.outCsvHeader) {
+        opts.outCsvHeader = opts.outCsvHeader.split(',');
+    }
     if (opts.outCsvNoHeader) opts.outCsvHeader = false;
 
-    if (opts.inCsvHeader) opts.inCsvHeader = opts.inCsvHeader.split(',');
+    if ('string' === typeof opts.inCsvHeader) {
+        opts.inCsvHeader = opts.inCsvHeader.split(',');
+    }
     if (opts.inCsvNoHeader) opts.inCsvHeader = false;
 
     if (opts.outCSvObjLevel) opts.outCSvObjLevel = J.isInt(opts.outCSvObjLevel);
