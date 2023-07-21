@@ -364,7 +364,14 @@ const processExportOptions = opts => {
     }
     if (opts.inCsvNoHeader) opts.inCsvHeader = false;
 
-    if (opts.outCSvObjLevel) opts.outCSvObjLevel = J.isInt(opts.outCSvObjLevel);
+    if (opts.outCsvObjLevel) opts.outCsvObjLevel = J.isInt(opts.outCsvObjLevel);
+
+    if (opts.outCsvFlatten) {
+        if ('string' === typeof opts.outCsvFlatten) {
+            opts.outCsvFlattenByGroup = opts.outCsvFlatten;
+            opts.outCsvFlatten = true;
+        }
+    }
 };
 
 /**
@@ -828,6 +835,9 @@ function createGameDir(template, gameName, outDir,
                 // Copying favicon over.
                 fs.copySync(ngt.resolve(path.join('public', 'favicon.ico')),
                             path.resolve(outDir, 'public', 'favicon.ico'));
+
+                fs.copySync(ngt.resolve(path.join('public', '404.htm')),
+                            path.resolve(outDir, 'public', '404.htm'));
 
                 mkdir(path.resolve(outDir, 'public', 'js'), function() {
                     write(path.resolve(outDir, 'public', 'js', 'index.js'),
