@@ -215,7 +215,7 @@ program
     .option('    --from-room <room>', 'export from room (included)')
     .option('    --to-room <room>', 'export up to room (included)')
     // Process.
-    .option('    --preprocess <file.js>', 'path to file exporting a function to modify items')
+    .option('    --on-insert <file.js>', 'path to file exporting a function to modify items')
     // CSV
     .option('    --out-csv-flatten [group]', 'merges all items [by group] before export')
     .option('    --out-csv-header <header>', 'header for export csv files (comma separeted values)')
@@ -375,26 +375,27 @@ const processExportOptions = opts => {
         }
     }
 
-    if (opts.preprocess) {
+    if (opts.onInsert) {
+        let p = opts.onInsert;
+        // console.log(p);
+        if (!path.isAbsolute(p) && !p.substring(0,2) === "./") {
+            p = "./" + p;
+        }
+
         try {
-            let p = opts.preprocess;
-            // console.log(p);
-            if (!path.isAbsolute(p) && !p.substring(0,2) === "./") {
-                p = "./" + p;
-            }
             p = require(p);
             if ('function' !== typeof p) {
-                console.log('Error: preprocess did not return a function');
-                opts.preprocess = null;    
+                console.log('Error: on-insert did not return a function');
+                opts.onInsert = null;    
             }
             else {
-                opts.preprocess = p;
+                opts.onInsert = p;
             }
         }
         catch(e) {
-            // console.log(e);
-            console.log('Error: could not load preprocess function');
-            opts.preprocess = null;
+            if (opts.verbose) console.log(e);
+            console.log('Error: could not load on-insert function');
+            opts.onInsert = null;
         }
     }
 };
